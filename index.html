@@ -1,4 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clube CDE — Área de Membros</title>
+<meta name="description" content="Área de membros do Clube CDE — rede de contatos, mural, trilhas, ferramentas, O Conselho e especialistas de plantão.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Clube CDE — Área de Membros">
+<meta property="og:description" content="Rede de contatos, ferramentas, O Conselho e especialistas de plantão — tudo num só lugar.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMTQxNzFDIi8+CjxsaW5lIHgxPSIxOSIgeTE9IjQ1IiB4Mj0iMzIiIHkyPSIyMyIgc3Ryb2tlPSIjQzlBMjI3IiBzdHJva2Utd2lkdGg9IjIiLz4KPGxpbmUgeDE9IjQ1IiB5MT0iNDUiIHgyPSIzMiIgeTI9IjIzIiBzdHJva2U9IiNDOUEyMjciIHN0cm9rZS13aWR0aD0iMiIvPgo8bGluZSB4MT0iMTkiIHkxPSI0NSIgeDI9IjQ1IiB5Mj0iNDUiIHN0cm9rZT0iIzhBNkU0QiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPGNpcmNsZSBjeD0iMzIiIGN5PSIyMyIgcj0iNiIgZmlsbD0iIzE0MTcxQyIgc3Ryb2tlPSIjQzlBMjI3IiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8Y2lyY2xlIGN4PSIxOSIgY3k9IjQ1IiByPSI0IiBmaWxsPSIjMTQxNzFDIiBzdHJva2U9IiM4QTZFNEIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxjaXJjbGUgY3g9IjQ1IiBjeT0iNDUiIHI9IjQiIGZpbGw9IiMxNDE3MUMiIHN0cm9rZT0iIzhBNkU0QiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc+Cg==">
 <style>
   @font-face {
     font-family: 'Fraunces';
@@ -76,18 +87,6 @@
     flex-direction: column;
   }
 
-  .demo-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; padding: 8px clamp(16px, 4vw, 40px);
-    background: var(--ink-sunken); border-bottom: 1px dashed var(--hairline);
-    position: sticky; top: 0; z-index: 41;
-  }
-  .demo-label { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-faint); }
-  .demo-toggle { display: flex; gap: 6px; }
-  .demo-btn { background: none; border: 1px solid var(--hairline); color: var(--text-dim); font-size: 0.72rem; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
-  .demo-btn:hover { border-color: var(--brass-dim); }
-  .demo-btn.active { border-color: var(--brass); color: var(--brass); background: rgba(201,162,39,0.08); }
-
   .topbar {
     display: flex;
     align-items: center;
@@ -98,7 +97,7 @@
     border-bottom: 1px solid var(--hairline);
     background: linear-gradient(180deg, var(--ink) 0%, rgba(20,23,28,0.96) 100%);
     position: sticky;
-    top: 34px;
+    top: 0;
     z-index: 40;
     backdrop-filter: blur(6px);
   }
@@ -135,7 +134,7 @@
   }
 
   .lock-overlay {
-    position: fixed; top: 102px; left: 0; right: 0; bottom: 0; z-index: 60;
+    position: fixed; top: 68px; left: 0; right: 0; bottom: 0; z-index: 60;
     display: none; align-items: center; justify-content: center;
     background: rgba(14,17,20,0.5); padding: 20px;
   }
@@ -288,6 +287,32 @@
   .toast-match .row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
   .toast-match .link-btn { background: none; border: none; color: var(--brass); font-size: 0.76rem; cursor: pointer; padding: 0; }
   .toast-match .close-btn { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.9rem; padding: 2px 4px; }
+
+  /* ---------- NETWORKING (WhatsApp) view ---------- */
+  #view-networking { padding: 40px clamp(16px, 4vw, 40px) 90px; max-width: 640px; margin: 0 auto; }
+  .wa-card {
+    background: var(--ink-raised); border: 1px solid var(--hairline); border-radius: 16px;
+    padding: 40px 32px; text-align: center; margin-bottom: 28px;
+  }
+  .wa-icon {
+    width: 64px; height: 64px; margin: 0 auto 22px; border-radius: 50%;
+    background: rgba(37,211,102,0.12); border: 1.5px solid #25D366;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wa-card h3 { font-size: 1.35rem; margin-bottom: 10px; }
+  .wa-card p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.6; max-width: 440px; margin: 0 auto 26px; }
+  .wa-btn {
+    display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: #0b2013;
+    font-weight: 700; font-size: 0.92rem; padding: 14px 28px; border-radius: 10px;
+    text-decoration: none; transition: background 0.15s ease;
+  }
+  .wa-btn:hover { background: #2be374; }
+  .wa-note { margin-top: 18px; font-size: 0.7rem; color: var(--text-faint); }
+  .wa-rules { background: var(--ink-raised); border: 1px solid var(--hairline); border-radius: 14px; padding: 26px 28px; }
+  .wa-rules-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--umber); margin-bottom: 16px; }
+  .wa-rules ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 13px; }
+  .wa-rules li { font-size: 0.86rem; color: var(--text); padding-left: 22px; position: relative; line-height: 1.55; }
+  .wa-rules li::before { content: '→'; position: absolute; left: 0; color: var(--brass); }
 
   /* ---------- MURAL view ---------- */
   #view-mural { padding: 32px clamp(16px, 4vw, 40px) 80px; max-width: 760px; margin: 0 auto; }
@@ -681,9 +706,17 @@
   }
 
   @media (max-width: 720px) {
-    .tabs { gap: 0; }
-    .tab { padding: 10px 9px; font-size: 0.74rem; }
+    .topbar { gap: 10px; }
+    .tabs {
+      gap: 0; flex: 1 1 auto; min-width: 0; justify-content: flex-start;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { padding: 10px 9px; font-size: 0.74rem; white-space: nowrap; flex: none; }
+    .brand { flex: none; }
+    .member-chip { flex: none; }
     .member-chip span.txt { display: none; }
+    .subscribe-cta, .logout-btn { flex: none; }
     .rede-caption { display: none; }
     .report-grid { grid-template-columns: 1fr; }
   }
@@ -744,6 +777,8 @@
   }
   .logout-btn:hover { border-color: var(--brass-dim); color: var(--brass); }
 </style>
+</head>
+<body>
 
 <div class="login-gate hidden" id="login-gate">
   <div class="login-card">
@@ -766,19 +801,12 @@
       <button type="button" id="login-forgot">Esqueci minha senha</button>
       <button type="button" id="login-signup">Ainda não sou membro</button>
     </div>
-    <div class="login-demo-note">Prévia do protótipo: qualquer e-mail válido + senha com 6 ou mais caracteres entra. No site real, isso vira autenticação de verdade — e o acesso é liberado automaticamente pelo gateway de pagamento, sem revisão manual.</div>
+    <div class="login-demo-note">Acesso antecipado: use um e-mail e uma senha de teste (6 ou mais caracteres) pra entrar. Evite usar uma senha que você já usa em outro lugar — a autenticação definitiva chega junto com a integração de pagamento.</div>
   </div>
 </div>
 <div class="login-toast" id="login-toast"></div>
 
 <div class="app hidden" data-mode="member">
-  <div class="demo-bar">
-    <span class="demo-label">Pré-visualização do protótipo</span>
-    <div class="demo-toggle">
-      <button class="demo-btn active" data-mode="member">Como membro</button>
-      <button class="demo-btn" data-mode="visitor">Como visitante</button>
-    </div>
-  </div>
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark">CDE</span>
@@ -786,6 +814,7 @@
     </div>
     <nav class="tabs" role="tablist" aria-label="Navegação principal">
       <button class="tab" role="tab" data-view="rede" aria-selected="true">Rede</button>
+      <button class="tab" role="tab" data-view="networking" aria-selected="false">Networking</button>
       <button class="tab" role="tab" data-view="mural" aria-selected="false">Mural</button>
       <button class="tab" role="tab" data-view="perfil" aria-selected="false">Perfil</button>
       <button class="tab" role="tab" data-view="relatorio" aria-selected="false">Relatório</button>
@@ -835,6 +864,35 @@
           <button class="link-btn" id="toast-view">Ver no mapa</button>
           <button class="close-btn" id="toast-close" aria-label="Dispensar">✕</button>
         </div>
+      </div>
+    </section>
+
+    <!-- NETWORKING (WhatsApp) -->
+    <section id="view-networking" class="view">
+      <div class="view-head">
+        <h2>Networking ao vivo</h2>
+        <div class="sub">O app guarda a memória do clube. O WhatsApp é onde a conversa acontece agora — indicação rápida, aviso de live, pergunta urgente.</div>
+      </div>
+      <div class="wa-card">
+        <div class="wa-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.8">
+            <path d="M12 3C7.03 3 3 6.58 3 11c0 2.08.9 3.97 2.38 5.4L4.5 20.5l4.3-1.4C9.9 19.4 10.93 19.6 12 19.6c4.97 0 9-3.58 9-8s-4.03-8.6-9-8.6z" stroke-linejoin="round"/>
+            <path d="M8.5 10.5c.3 2 2 3.7 4 4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Grupo oficial do Clube CDE</h3>
+        <p>Só pra membros ativos. Ao entrar, se apresente: nome, nicho e cidade — é assim que a primeira indicação começa.</p>
+        <a class="wa-btn" id="wa-join-btn" href="https://chat.whatsapp.com/SEU-LINK-AQUI" target="_blank" rel="noopener noreferrer">Entrar no grupo do WhatsApp</a>
+        <div class="wa-note">Link de convite do grupo — troque pela URL real antes de divulgar (veja o README do projeto).</div>
+      </div>
+      <div class="wa-rules">
+        <div class="wa-rules-title">Como o grupo funciona</div>
+        <ul>
+          <li>Indicação e pedido de ajuda direto — sem enrolação</li>
+          <li>Aviso de live quinzenal sai por aqui primeiro</li>
+          <li>Fechou negócio com alguém do grupo? Conta lá — vira selo aqui no app</li>
+          <li>Sem spam, sem venda direta fora de contexto</li>
+        </ul>
       </div>
     </section>
 
@@ -1568,10 +1626,10 @@
     }, 650);
   });
   document.getElementById('login-forgot').addEventListener('click', function(){
-    loginToastMsg('No site real, isso envia um link de redefinição por e-mail.');
+    loginToastMsg('Redefinição de senha chega com a próxima versão. Por enquanto, é só entrar de novo com um e-mail e senha novos.');
   });
   document.getElementById('login-signup').addEventListener('click', function(){
-    loginToastMsg('No site real, isso leva pro checkout do gateway de pagamento.');
+    if (typeof showPaywall === 'function') showPaywall();
   });
   document.getElementById('logout-btn').addEventListener('click', function(){
     localStorage.removeItem(LOGIN_KEY);
@@ -2759,33 +2817,12 @@
     document.getElementById('spec-grid').scrollIntoView({ behavior: REDUCE_MOTION ? 'auto' : 'smooth', block: 'center' });
   });
 
-  /* ---------------- Modo visitante ---------------- */
-  var appEl = document.querySelector('.app');
+  /* ---------------- Paywall (pitch pra quem ainda não é membro) ---------------- */
   var paywallBackdrop = document.getElementById('paywall-backdrop');
-  var paywallShownOnce = false;
   function showPaywall(){
     paywallBackdrop.classList.add('show');
-    paywallShownOnce = true;
   }
   function hidePaywall(){ paywallBackdrop.classList.remove('show'); }
-
-  document.querySelectorAll('.demo-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.demo-btn').forEach(function(b){ b.classList.toggle('active', b === btn); });
-      var mode = btn.getAttribute('data-mode');
-      appEl.setAttribute('data-mode', mode);
-      if (mode === 'visitor') {
-        var activeTab = document.querySelector('.tab[aria-selected="true"]');
-        if (activeTab && (activeTab.getAttribute('data-view') === 'perfil' || activeTab.getAttribute('data-view') === 'relatorio')) {
-          setView('rede');
-        }
-        paywallShownOnce = false;
-        setTimeout(function(){ if (appEl.getAttribute('data-mode') === 'visitor' && !paywallShownOnce) showPaywall(); }, 1600);
-      } else {
-        hidePaywall();
-      }
-    });
-  });
 
   document.getElementById('subscribe-cta').addEventListener('click', showPaywall);
   document.getElementById('lock-cta').addEventListener('click', showPaywall);
@@ -2808,3 +2845,5 @@
 
 })();
 </script>
+</body>
+</html>

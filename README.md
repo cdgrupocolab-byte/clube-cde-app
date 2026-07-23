@@ -1,6 +1,10 @@
 # Clube CDE — Área de Membros
 
-Protótipo funcional do app do Clube CDE: mapa de rede, mural, trilhas, ferramentas/calculadoras, O Conselho, especialistas de IA, materiais e tela de login. Tudo em um único arquivo `index.html` autocontido (HTML + CSS + JS, sem dependências externas).
+Protótipo funcional do app do Clube CDE: mapa de rede, mural, networking (WhatsApp), trilhas, ferramentas/calculadoras, O Conselho, especialistas de IA, materiais e tela de login. Tudo em um único arquivo `index.html` autocontido (HTML + CSS + JS, sem dependências externas).
+
+## Antes de divulgar: troque o link do WhatsApp
+
+A aba **Networking** tem um botão "Entrar no grupo do WhatsApp" com um link de exemplo (`https://chat.whatsapp.com/SEU-LINK-AQUI`). Procure por `wa-join-btn` no `index.html` e troque o `href` pelo link de convite real do seu grupo antes de mandar pra alguém.
 
 ## Como funciona o login (importante)
 
