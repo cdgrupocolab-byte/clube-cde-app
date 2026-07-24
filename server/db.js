@@ -39,6 +39,10 @@ async function init() {
   `);
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS offer TEXT;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS seeking TEXT;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS niche TEXT;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS city TEXT;`);
 }
 
 module.exports = { pool, init };

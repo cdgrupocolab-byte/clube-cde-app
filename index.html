@@ -381,15 +381,21 @@
     border-radius: 999px; padding: 6px 14px; font-size: 0.76rem; cursor: pointer;
   }
   .profile-edit-btn:hover { color: var(--text); border-color: var(--brass-dim); }
-  .profile-edit-form { display: none; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .profile-edit-form { display: none; flex-direction: column; gap: 10px; margin-top: 14px; max-width: 420px; }
   .profile-edit-form.show { display: flex; }
-  .profile-edit-form input {
+  .profile-edit-form input, .profile-edit-form textarea {
     background: var(--ink-sunken); border: 1px solid var(--hairline); color: var(--text);
-    border-radius: 8px; padding: 8px 11px; font-size: 0.82rem; min-width: 200px;
+    border-radius: 8px; padding: 9px 12px; font-size: 0.84rem; font-family: inherit; width: 100%; box-sizing: border-box; resize: vertical;
+  }
+  .profile-photo-label {
+    font-size: 0.78rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px;
+  }
+  .profile-photo-label input[type="file"] {
+    background: none; border: 1px dashed var(--hairline); padding: 10px; font-size: 0.78rem; color: var(--text-dim);
   }
   .profile-edit-form button {
     background: var(--brass); color: var(--ink); border: none; border-radius: 8px;
-    padding: 8px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    padding: 9px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer; align-self: flex-start;
   }
   .profile-save-msg { font-size: 0.78rem; color: var(--pine-bright); }
   .profile-meta { color: var(--text-dim); font-size: 0.86rem; margin-top: 5px; }
@@ -929,40 +935,41 @@
     <section id="view-perfil" class="view">
       <div class="profile-card">
         <div class="profile-top">
-          <div class="profile-avatar" id="profile-avatar-el">RD</div>
+          <div class="profile-avatar" id="profile-avatar-el">··</div>
           <div>
-            <h2 class="profile-name" id="profile-name-el">Rennan Diniz</h2>
-            <div class="profile-meta">Consultoria Financeira · Curitiba, PR</div>
+            <h2 class="profile-name" id="profile-name-el">—</h2>
+            <div class="profile-meta" id="profile-meta-el">Complete seu perfil</div>
             <div class="profile-status"><span class="d"></span> Mensalidade em dia</div>
           </div>
         </div>
         <div class="profile-edit">
-          <button type="button" id="profile-edit-toggle" class="profile-edit-btn">Editar nome e foto</button>
+          <button type="button" id="profile-edit-toggle" class="profile-edit-btn">Editar perfil</button>
           <div class="profile-edit-form" id="profile-edit-form">
             <input type="text" id="profile-name-input" placeholder="Seu nome" maxlength="80">
-            <input type="url" id="profile-avatar-input" placeholder="Link de uma foto sua (https://...)">
+            <input type="text" id="profile-niche-input" placeholder="Sua área (ex: Consultoria Financeira)" maxlength="120">
+            <input type="text" id="profile-city-input" placeholder="Cidade, UF" maxlength="120">
+            <label class="profile-photo-label">
+              Foto de perfil
+              <input type="file" id="profile-avatar-file" accept="image/*">
+            </label>
+            <textarea id="profile-offer-input" placeholder="O que você oferece" maxlength="400" rows="2"></textarea>
+            <textarea id="profile-seeking-input" placeholder="O que você procura" maxlength="400" rows="2"></textarea>
             <button type="button" id="profile-save-btn">Salvar</button>
             <span class="profile-save-msg" id="profile-save-msg"></span>
           </div>
         </div>
-        <div class="badge-row">
-          <div class="badge gold"><span class="glyph">✓</span> Primeiro negócio fechado</div>
-          <div class="badge gold"><span class="glyph">6</span> Semanas seguidas em lives</div>
-          <div class="badge green"><span class="glyph">4</span> Ajudou no mural</div>
-        </div>
         <div class="profile-cols">
           <div class="profile-col">
             <div class="label">O que ofereço</div>
-            <p>Diagnóstico de fluxo de caixa e reestruturação de dívida para empresas pequenas em fase de crescimento.</p>
+            <p id="profile-offer-el">Ainda não preenchido — clique em "Editar perfil".</p>
           </div>
           <div class="profile-col">
             <div class="label">O que procuro</div>
-            <p>Indicações de contadores e advogados empresariais fora de Curitiba, para clientes abrindo filial.</p>
+            <p id="profile-seeking-el">Ainda não preenchido — clique em "Editar perfil".</p>
           </div>
         </div>
         <div class="profile-footer">
-          <span>No clube desde <span class="mono">mar/2024</span></span>
-          <span>128 visualizações de perfil</span>
+          <span id="profile-since-el"></span>
         </div>
       </div>
     </section>
@@ -1644,6 +1651,7 @@
     var last = parts.length > 1 ? parts[parts.length - 1][0] : '';
     return (first + last).toUpperCase();
   }
+  var pendingAvatarData = null;
   function applyProfile(profile){
     if (!profile) return;
     var ini = initialsOf(profile.name);
@@ -1661,10 +1669,31 @@
     document.querySelectorAll('#chip-name-el, #profile-name-el').forEach(function(el){
       el.textContent = profile.name || profile.email || '';
     });
+    var metaEl = document.getElementById('profile-meta-el');
+    if (metaEl) {
+      var metaParts = [profile.niche, profile.city].filter(Boolean);
+      metaEl.textContent = metaParts.length ? metaParts.join(' · ') : 'Complete seu perfil';
+    }
+    var offerEl = document.getElementById('profile-offer-el');
+    if (offerEl) offerEl.textContent = profile.offer || 'Ainda não preenchido — clique em "Editar perfil".';
+    var seekingEl = document.getElementById('profile-seeking-el');
+    if (seekingEl) seekingEl.textContent = profile.seeking || 'Ainda não preenchido — clique em "Editar perfil".';
+    var sinceEl = document.getElementById('profile-since-el');
+    if (sinceEl && profile.memberSince) {
+      var d = new Date(profile.memberSince);
+      sinceEl.textContent = 'No clube desde ' + d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+    }
     var nameInput = document.getElementById('profile-name-input');
-    var avatarInput = document.getElementById('profile-avatar-input');
+    var nicheInput = document.getElementById('profile-niche-input');
+    var cityInput = document.getElementById('profile-city-input');
+    var offerInput = document.getElementById('profile-offer-input');
+    var seekingInput = document.getElementById('profile-seeking-input');
     if (nameInput) nameInput.value = profile.name || '';
-    if (avatarInput) avatarInput.value = profile.avatarUrl || '';
+    if (nicheInput) nicheInput.value = profile.niche || '';
+    if (cityInput) cityInput.value = profile.city || '';
+    if (offerInput) offerInput.value = profile.offer || '';
+    if (seekingInput) seekingInput.value = profile.seeking || '';
+    pendingAvatarData = null;
   }
   function loadProfile(){
     var session = getSession();
@@ -1686,23 +1715,55 @@
       profileEditForm.classList.toggle('show');
     });
   }
+  var profileAvatarFile = document.getElementById('profile-avatar-file');
+  if (profileAvatarFile) {
+    profileAvatarFile.addEventListener('change', function(){
+      var file = profileAvatarFile.files && profileAvatarFile.files[0];
+      var msg = document.getElementById('profile-save-msg');
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { msg.textContent = 'Escolha um arquivo de imagem.'; return; }
+      var reader = new FileReader();
+      reader.onload = function(){
+        var img = new Image();
+        img.onload = function(){
+          var size = 320;
+          var canvas = document.createElement('canvas');
+          var scale = Math.max(size / img.width, size / img.height);
+          var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+          canvas.width = size; canvas.height = size;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+          pendingAvatarData = canvas.toDataURL('image/jpeg', 0.82);
+          msg.textContent = 'Foto pronta pra salvar.';
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
   var profileSaveBtn = document.getElementById('profile-save-btn');
   if (profileSaveBtn) {
     profileSaveBtn.addEventListener('click', function(){
       var session = getSession();
       if (!session || !session.token) return;
       var msg = document.getElementById('profile-save-msg');
-      var name = document.getElementById('profile-name-input').value.trim();
-      var avatarUrl = document.getElementById('profile-avatar-input').value.trim();
+      var payload = {
+        name: document.getElementById('profile-name-input').value.trim(),
+        niche: document.getElementById('profile-niche-input').value.trim(),
+        city: document.getElementById('profile-city-input').value.trim(),
+        offer: document.getElementById('profile-offer-input').value.trim(),
+        seeking: document.getElementById('profile-seeking-input').value.trim()
+      };
+      if (pendingAvatarData) payload.avatarUrl = pendingAvatarData;
       profileSaveBtn.disabled = true;
       msg.textContent = 'Salvando...';
       fetch(API_BASE_URL + '/me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
-        body: JSON.stringify({ name: name, avatarUrl: avatarUrl })
+        body: JSON.stringify(payload)
       }).then(function(r){ return r.json(); }).then(function(data){
         profileSaveBtn.disabled = false;
-        if (!data.ok) { msg.textContent = 'Erro ao salvar.'; return; }
+        if (!data.ok) { msg.textContent = data.error || 'Erro ao salvar.'; return; }
         applyProfile(data);
         session.name = data.name; session.avatarUrl = data.avatarUrl;
         localStorage.setItem(LOGIN_KEY, JSON.stringify(session));

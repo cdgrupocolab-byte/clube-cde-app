@@ -43,7 +43,7 @@ async function sendAccessEmail(email, name, token) {
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(express.json());
+app.use(express.json({ limit: '4mb' }));
 app.use(cors({ origin: SITE_ORIGIN }));
 
 function genToken() {
@@ -216,22 +216,40 @@ function requireSession(req, res, next) {
   next();
 }
 
+function memberToProfile(m) {
+  return {
+    email: m.email, name: m.name, avatarUrl: m.avatar_url,
+    offer: m.offer, seeking: m.seeking, niche: m.niche, city: m.city,
+    memberSince: m.created_at
+  };
+}
+
 app.get('/me', requireSession, async (req, res) => {
-  const { rows } = await pool.query('SELECT email, name, avatar_url FROM members WHERE email = $1', [req.memberEmail]);
+  const { rows } = await pool.query('SELECT * FROM members WHERE email = $1', [req.memberEmail]);
   if (!rows.length) return res.status(404).json({ ok: false });
-  res.json({ ok: true, email: rows[0].email, name: rows[0].name, avatarUrl: rows[0].avatar_url });
+  res.json({ ok: true, ...memberToProfile(rows[0]) });
 });
 
 app.post('/me', requireSession, async (req, res) => {
-  const { name, avatarUrl } = req.body || {};
-  const cleanName = name ? String(name).trim().slice(0, 80) : null;
-  const cleanAvatar = avatarUrl ? String(avatarUrl).trim().slice(0, 500) : null;
-  await pool.query(
-    'UPDATE members SET name = COALESCE($2, name), avatar_url = $3 WHERE email = $1',
-    [req.memberEmail, cleanName, cleanAvatar]
-  );
-  const { rows } = await pool.query('SELECT email, name, avatar_url FROM members WHERE email = $1', [req.memberEmail]);
-  res.json({ ok: true, email: rows[0].email, name: rows[0].name, avatarUrl: rows[0].avatar_url });
+  const body = req.body || {};
+  if (body.avatarUrl && String(body.avatarUrl).length > 3500000) {
+    return res.status(400).json({ ok: false, error: 'Foto muito grande. Tente uma imagem menor.' });
+  }
+  const fieldLimits = { name: 80, avatarUrl: 3500000, offer: 400, seeking: 400, niche: 120, city: 120 };
+  const columns = { name: 'name', avatarUrl: 'avatar_url', offer: 'offer', seeking: 'seeking', niche: 'niche', city: 'city' };
+  const sets = [];
+  const values = [req.memberEmail];
+  Object.keys(columns).forEach(function(field) {
+    if (body[field] === undefined) return;
+    const val = body[field] === null ? null : String(body[field]).trim().slice(0, fieldLimits[field]);
+    values.push(val || null);
+    sets.push(columns[field] + ' = $' + values.length);
+  });
+  if (sets.length) {
+    await pool.query('UPDATE members SET ' + sets.join(', ') + ' WHERE email = $1', values);
+  }
+  const { rows } = await pool.query('SELECT * FROM members WHERE email = $1', [req.memberEmail]);
+  res.json({ ok: true, ...memberToProfile(rows[0]) });
 });
 
 /* ---------------- Admin ---------------- */
