@@ -92,21 +92,29 @@ app.post('/webhooks/hubla', express.json({ limit: '1mb' }), async (req, res) => 
     const invoice = body.event && body.event.invoice;
     const payer = invoice && invoice.payer;
     const product = body.event && body.event.product;
-    const email = payer && payer.email;
-    const name = payer ? [payer.firstName, payer.lastName].filter(Boolean).join(' ') : null;
+    const invoiceEmail = payer && payer.email;
+    const invoiceName = payer ? [payer.firstName, payer.lastName].filter(Boolean).join(' ') : null;
 
-    if (type === 'invoice.payment_succeeded' && email) {
-      await grantAccess(email, name, 'hubla', invoice.id);
-    } else if (type === 'invoice.refunded' && email) {
-      await revokeAccess(email);
-    } else if (type === 'invoice.status_updated' && email && invoice) {
+    const subUser = body.event && body.event.user;
+    const subEmail = subUser && subUser.email;
+    const subName = subUser ? [subUser.firstName, subUser.lastName].filter(Boolean).join(' ') : null;
+
+    if (type === 'invoice.payment_succeeded' && invoiceEmail) {
+      await grantAccess(invoiceEmail, invoiceName, 'hubla', invoice.id);
+    } else if (type === 'invoice.refunded' && invoiceEmail) {
+      await revokeAccess(invoiceEmail);
+    } else if (type === 'invoice.status_updated' && invoiceEmail && invoice) {
       if (invoice.status === 'paid') {
-        await grantAccess(email, name, 'hubla', invoice.id);
+        await grantAccess(invoiceEmail, invoiceName, 'hubla', invoice.id);
       } else if (invoice.status === 'disputed' || invoice.status === 'chargeback') {
-        await revokeAccess(email);
+        await revokeAccess(invoiceEmail);
       }
+    } else if (type === 'subscription.activated' && subEmail) {
+      await grantAccess(subEmail, subName, 'hubla', null);
+    } else if (type === 'subscription.deactivated' && subEmail) {
+      await revokeAccess(subEmail);
     }
-    res.status(200).json({ ok: true, product: product && product.name });
+    res.status(200).json({ ok: true, type: type, product: product && product.name });
   } catch (err) {
     console.error('webhook error', err);
     res.status(200).json({ ok: false });
