@@ -376,9 +376,16 @@
 
   .mural-list { display: flex; flex-direction: column; }
   .mural-empty { padding: 40px 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; }
-  .trilhas-empty { padding: 60px 20px; text-align: center; max-width: 480px; margin: 0 auto; }
+  .trilhas-empty { padding: 40px 20px; text-align: center; max-width: 480px; margin: 0 auto; }
   .trilhas-empty .k { color: var(--brass); font-family: 'Fraunces', serif; font-size: 1.15rem; margin-bottom: 10px; }
   .trilhas-empty p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; }
+  .lives-real-block { margin-top: 20px; }
+  .lives-real-title { font-size: 1.1rem; color: var(--brass); margin-bottom: 16px; font-family: 'Fraunces', serif; }
+  .lives-real-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .live-real-card { background: var(--ink-raised); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+  .live-real-embed { position: relative; padding-top: 56.25%; background: var(--ink-sunken); }
+  .live-real-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .live-real-title { padding: 12px 14px; font-size: 0.86rem; color: var(--text); }
   .mural-item { padding: 20px 0; border-bottom: 1px solid var(--hairline); display: flex; gap: 16px; }
   .mural-item:first-child { padding-top: 0; }
   .mural-avatar {
@@ -1086,8 +1093,12 @@
         <div class="sub">Séries de episódios e acervo de lives do clube.</div>
       </div>
       <div class="trilhas-empty">
-        <div class="k">Conteúdo chegando em breve</div>
-        <p>As trilhas e o acervo de lives do CDE estão sendo organizados e vão aparecer aqui em breve, com o material real do clube.</p>
+        <div class="k">Trilhas em série chegando em breve</div>
+        <p>As séries de episódios do CDE estão sendo organizadas e vão aparecer aqui em breve.</p>
+      </div>
+      <div class="lives-real-block">
+        <h3 class="lives-real-title">Lives gravadas</h3>
+        <div class="lives-real-grid" id="lives-real-grid"></div>
       </div>
     </section>
 
@@ -1793,6 +1804,28 @@
   var MEMBERS = [];
   var EDGES = [];
   var MURAL = [];
+
+  var REAL_LIVES = [
+    { title: 'Live Delegar função', youtubeId: 'bEXL9bF1fFg' }
+  ];
+  function renderRealLives(){
+    var grid = document.getElementById('lives-real-grid');
+    if (!grid) return;
+    if (!REAL_LIVES.length) {
+      grid.innerHTML = '<div class="md-empty">Em breve.</div>';
+      return;
+    }
+    grid.innerHTML = REAL_LIVES.map(function(live){
+      var safeTitle = String(live.title || '').replace(/[&<>"']/g, function(c){
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+      });
+      return '<div class="live-real-card">' +
+        '<div class="live-real-embed"><iframe src="https://www.youtube.com/embed/'+live.youtubeId+'" title="'+safeTitle+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe></div>' +
+        '<div class="live-real-title">'+safeTitle+'</div>' +
+      '</div>';
+    }).join('');
+  }
+  renderRealLives();
 
   function byId(id){ return MEMBERS.filter(function(m){ return m.id===id; })[0]; }
   function initials(name){
