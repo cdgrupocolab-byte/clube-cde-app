@@ -1731,6 +1731,7 @@
         applyProfile(data);
         session.name = data.name; session.avatarUrl = data.avatarUrl;
         localStorage.setItem(LOGIN_KEY, JSON.stringify(session));
+        if (typeof fetchNetworkMembers === 'function') fetchNetworkMembers();
         msg.textContent = 'Salvo!';
         setTimeout(function(){ msg.textContent = ''; }, 2000);
       }).catch(function(){ profileSaveBtn.disabled = false; msg.textContent = 'Erro de conexão.'; });
