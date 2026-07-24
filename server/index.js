@@ -254,11 +254,12 @@ app.post('/me', requireSession, async (req, res) => {
 
 app.get('/members/public', requireSession, async (req, res) => {
   const { rows } = await pool.query(
-    "SELECT id, email, name, niche, city, avatar_url FROM members WHERE status = 'active' ORDER BY created_at ASC LIMIT 500"
+    "SELECT id, email, name, niche, city, avatar_url, offer, seeking, created_at FROM members WHERE status = 'active' ORDER BY created_at ASC LIMIT 500"
   );
   const members = rows.map(function(m) {
     return {
       id: m.id, name: m.name, niche: m.niche, city: m.city, avatarUrl: m.avatar_url,
+      offer: m.offer, seeking: m.seeking, memberSince: m.created_at,
       role: m.email === req.memberEmail ? 'you' : 'member'
     };
   });
