@@ -265,6 +265,49 @@ app.get('/members/public', requireSession, async (req, res) => {
   res.json({ ok: true, members: members });
 });
 
+/* ---------------- Mural (posts reais dos membros) ---------------- */
+app.get('/mural/posts', requireSession, async (req, res) => {
+  const { rows } = await pool.query(`
+    SELECT p.id, p.tipo, p.text, p.status, p.created_at, p.member_email,
+           m.name, m.niche, m.city, m.avatar_url
+    FROM mural_posts p
+    JOIN members m ON m.email = p.member_email
+    ORDER BY p.created_at DESC
+    LIMIT 100
+  `);
+  const posts = rows.map(function(p) {
+    return {
+      id: p.id, tipo: p.tipo, text: p.text, status: p.status, createdAt: p.created_at,
+      isMine: p.member_email === req.memberEmail,
+      author: { name: p.name, niche: p.niche, city: p.city, avatarUrl: p.avatar_url }
+    };
+  });
+  res.json({ ok: true, posts: posts });
+});
+
+app.post('/mural/posts', requireSession, async (req, res) => {
+  const { tipo, text } = req.body || {};
+  if (tipo !== 'procuro' && tipo !== 'ofereco') {
+    return res.status(400).json({ ok: false, error: 'Tipo inválido.' });
+  }
+  const cleanText = String(text || '').trim().slice(0, 500);
+  if (!cleanText) return res.status(400).json({ ok: false, error: 'Escreva o texto do post.' });
+  await pool.query(
+    'INSERT INTO mural_posts (member_email, tipo, text) VALUES ($1, $2, $3)',
+    [req.memberEmail, tipo, cleanText]
+  );
+  res.json({ ok: true });
+});
+
+app.post('/mural/posts/:id/respond', requireSession, async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM mural_posts WHERE id = $1', [req.params.id]);
+  if (!rows.length || rows[0].member_email !== req.memberEmail) {
+    return res.status(404).json({ ok: false, error: 'Post não encontrado.' });
+  }
+  await pool.query("UPDATE mural_posts SET status = 'respondido' WHERE id = $1", [req.params.id]);
+  res.json({ ok: true });
+});
+
 /* ---------------- Admin ---------------- */
 function requireAdmin(req, res, next) {
   const auth = req.get('authorization') || '';

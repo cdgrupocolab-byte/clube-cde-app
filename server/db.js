@@ -43,6 +43,16 @@ async function init() {
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS seeking TEXT;`);
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS niche TEXT;`);
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS city TEXT;`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS mural_posts (
+      id SERIAL PRIMARY KEY,
+      member_email TEXT NOT NULL,
+      tipo TEXT NOT NULL,
+      text TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'aberto',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
 }
 
 module.exports = { pool, init };

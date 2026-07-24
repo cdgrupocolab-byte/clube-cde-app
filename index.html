@@ -327,6 +327,31 @@
   }
   .mural-search::placeholder { color: var(--text-faint); }
   .mural-search:focus { border-color: var(--brass-dim); }
+  .mural-post-btn {
+    flex: none; background: var(--brass); color: var(--ink); border: none; border-radius: 8px;
+    padding: 0 18px; font-size: 0.84rem; font-weight: 700; cursor: pointer;
+  }
+  .mural-post-form {
+    display: none; flex-direction: column; gap: 10px; margin-bottom: 24px;
+    background: var(--ink-raised); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px;
+  }
+  .mural-post-form.show { display: flex; }
+  .mural-post-tipo { display: flex; gap: 18px; font-size: 0.86rem; color: var(--text-dim); }
+  .mural-post-tipo label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .mural-post-form textarea {
+    background: var(--ink-sunken); border: 1px solid var(--hairline); color: var(--text);
+    border-radius: 8px; padding: 10px 13px; font-size: 0.86rem; font-family: inherit; resize: vertical;
+  }
+  .mural-post-actions { display: flex; align-items: center; gap: 12px; }
+  .mural-post-actions button {
+    background: var(--brass); color: var(--ink); border: none; border-radius: 8px;
+    padding: 9px 18px; font-size: 0.84rem; font-weight: 700; cursor: pointer;
+  }
+  .mural-post-msg { font-size: 0.8rem; color: var(--pine-bright); }
+  .mural-respond-btn {
+    background: none; border: 1px solid var(--hairline); color: var(--text-dim);
+    border-radius: 999px; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; margin-top: 8px;
+  }
 
   .mural-list { display: flex; flex-direction: column; }
   .mural-empty { padding: 40px 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; }
@@ -944,6 +969,18 @@
       </div>
       <div class="mural-bar">
         <input class="mural-search" type="text" placeholder="Buscar por nicho, cidade ou palavra-chave…">
+        <button type="button" class="mural-post-btn" id="mural-post-toggle">Publicar no mural</button>
+      </div>
+      <div class="mural-post-form" id="mural-post-form">
+        <div class="mural-post-tipo">
+          <label><input type="radio" name="mural-tipo" value="procuro" checked> Procuro</label>
+          <label><input type="radio" name="mural-tipo" value="ofereco"> Ofereço</label>
+        </div>
+        <textarea id="mural-post-text" placeholder="Escreva seu post…" maxlength="500" rows="3"></textarea>
+        <div class="mural-post-actions">
+          <button type="button" id="mural-post-submit">Publicar</button>
+          <span class="mural-post-msg" id="mural-post-msg"></span>
+        </div>
       </div>
       <div class="mural-list" id="mural-list"></div>
     </section>
@@ -1643,6 +1680,7 @@
     loginGate.classList.add('hidden');
     appRoot.classList.remove('hidden');
     if (typeof fetchNetworkMembers === 'function') fetchNetworkMembers();
+    if (typeof fetchMuralPosts === 'function') fetchMuralPosts();
     requestAnimationFrame(function(){
       if (typeof resizeCanvas === 'function') resizeCanvas();
       if (typeof resumeCanvas === 'function') resumeCanvas();
@@ -1889,6 +1927,23 @@
 
   /* ---------------- Mural render ---------------- */
   var muralList = document.getElementById('mural-list');
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  function timeAgo(iso){
+    var diffMs = Date.now() - new Date(iso).getTime();
+    var mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'agora mesmo';
+    if (mins < 60) return 'há ' + mins + ' min';
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return 'há ' + hours + 'h';
+    var days = Math.floor(hours / 24);
+    if (days < 7) return 'há ' + days + (days === 1 ? ' dia' : ' dias');
+    var weeks = Math.floor(days / 7);
+    return 'há ' + weeks + (weeks === 1 ? ' semana' : ' semanas');
+  }
   function renderMural(){
     muralList.innerHTML = '';
     if (!MURAL.length) {
@@ -1896,25 +1951,77 @@
       return;
     }
     MURAL.forEach(function(post){
-      var m = byId(post.id);
-      if (!m) return;
+      var author = post.author || {};
       var item = document.createElement('div');
       item.className = 'mural-item';
       item.innerHTML =
-        '<div class="mural-avatar">'+initials(m.name)+'</div>' +
+        '<div class="mural-avatar">'+initials(author.name)+'</div>' +
         '<div class="mural-body">' +
           '<div class="mural-top">' +
             '<span class="pill '+(post.tipo==='procuro'?'pill-procuro':'pill-ofereco')+'">'+(post.tipo==='procuro'?'Procuro':'Ofereço')+'</span>' +
-            '<span class="mural-name">'+m.name+'</span>' +
-            '<span class="mural-meta">'+(m.niche||'')+' · '+(m.city||'')+'</span>' +
+            '<span class="mural-name">'+escapeHtml(author.name)+'</span>' +
+            '<span class="mural-meta">'+escapeHtml(author.niche||'')+' · '+escapeHtml(author.city||'')+'</span>' +
           '</div>' +
-          '<div class="mural-text">'+post.text+'</div>' +
+          '<div class="mural-text">'+escapeHtml(post.text)+'</div>' +
+          (post.isMine && post.status === 'aberto' ? '<button type="button" class="mural-respond-btn" data-post-id="'+post.id+'">Marcar como respondido</button>' : '') +
         '</div>' +
         '<div class="mural-status">' +
           '<div class="status-tag '+post.status+'"><span class="d"></span>'+(post.status==='aberto'?'Aberto':'Respondido')+'</div>' +
-          '<div class="mural-time">'+post.time+'</div>' +
+          '<div class="mural-time">'+timeAgo(post.createdAt)+'</div>' +
         '</div>';
       muralList.appendChild(item);
+    });
+    muralList.querySelectorAll('.mural-respond-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var session = getSession();
+        if (!session || !session.token) return;
+        fetch(API_BASE_URL + '/mural/posts/' + btn.getAttribute('data-post-id') + '/respond', {
+          method: 'POST', headers: { 'Authorization': 'Bearer ' + session.token }
+        }).then(function(){ fetchMuralPosts(); });
+      });
+    });
+  }
+  function fetchMuralPosts(){
+    var session = getSession();
+    if (!session || !session.token) return;
+    fetch(API_BASE_URL + '/mural/posts', { headers: { 'Authorization': 'Bearer ' + session.token } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!data || !data.ok) return;
+        MURAL = data.posts;
+        renderMural();
+      }).catch(function(){});
+  }
+  var muralPostToggle = document.getElementById('mural-post-toggle');
+  var muralPostForm = document.getElementById('mural-post-form');
+  if (muralPostToggle) {
+    muralPostToggle.addEventListener('click', function(){
+      muralPostForm.classList.toggle('show');
+    });
+  }
+  var muralPostSubmit = document.getElementById('mural-post-submit');
+  if (muralPostSubmit) {
+    muralPostSubmit.addEventListener('click', function(){
+      var session = getSession();
+      if (!session || !session.token) return;
+      var tipo = document.querySelector('input[name="mural-tipo"]:checked').value;
+      var text = document.getElementById('mural-post-text').value.trim();
+      var msg = document.getElementById('mural-post-msg');
+      if (!text) { msg.textContent = 'Escreva o texto do post.'; return; }
+      muralPostSubmit.disabled = true;
+      msg.textContent = 'Publicando...';
+      fetch(API_BASE_URL + '/mural/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+        body: JSON.stringify({ tipo: tipo, text: text })
+      }).then(function(r){ return r.json(); }).then(function(data){
+        muralPostSubmit.disabled = false;
+        if (!data.ok) { msg.textContent = data.error || 'Erro ao publicar.'; return; }
+        document.getElementById('mural-post-text').value = '';
+        msg.textContent = '';
+        muralPostForm.classList.remove('show');
+        fetchMuralPosts();
+      }).catch(function(){ muralPostSubmit.disabled = false; msg.textContent = 'Erro de conexão.'; });
     });
   }
 
