@@ -12,6 +12,7 @@ const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://clube-cde.onrender.com';
 const TOKEN_TTL_DAYS = 7;
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(cors({ origin: SITE_ORIGIN }));
 
