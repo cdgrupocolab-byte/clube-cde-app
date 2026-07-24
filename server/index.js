@@ -9,7 +9,37 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const HUBLA_WEBHOOK_TOKEN = process.env.HUBLA_WEBHOOK_TOKEN || '';
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
 const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://clube-cde.onrender.com';
+const API_PUBLIC_URL = process.env.API_PUBLIC_URL || 'https://clube-cde-api.onrender.com';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Clube CDE <onboarding@resend.dev>';
 const TOKEN_TTL_DAYS = 7;
+
+async function sendAccessEmail(email, name, token) {
+  if (!RESEND_API_KEY) { console.log('RESEND_API_KEY não configurada, pulando envio de e-mail para', email); return; }
+  const link = `${API_PUBLIC_URL}/set-password/${token}`;
+  const greeting = name ? `Olá, ${name}!` : 'Olá!';
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: [email],
+        subject: 'Seu acesso ao Clube CDE está liberado',
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+          <h2 style="color:#C9A227;">${greeting}</h2>
+          <p>Seu acesso ao Clube CDE foi liberado. Clique no botão abaixo pra criar sua senha e entrar:</p>
+          <p><a href="${link}" style="display:inline-block;background:#C9A227;color:#14171C;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold;">Criar minha senha</a></p>
+          <p style="color:#888;font-size:13px;">Ou copie e cole este link: ${link}</p>
+          <p style="color:#888;font-size:13px;">Esse link expira em 7 dias.</p>
+        </div>`
+      })
+    });
+    if (!r.ok) console.error('resend send failed', r.status, await r.text());
+  } catch (e) {
+    console.error('resend send error', e);
+  }
+}
 
 const app = express();
 app.set('trust proxy', 1);
@@ -60,6 +90,7 @@ async function grantAccess(email, name, source, hublaInvoiceId) {
       [email, name || null, source, hublaInvoiceId || null, token, expiresAt]
     );
   }
+  await sendAccessEmail(email, name, token);
   return { email, alreadyActive: false, token };
 }
 
