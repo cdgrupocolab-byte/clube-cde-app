@@ -73,10 +73,18 @@ async function revokeAccess(email) {
 app.get('/', (req, res) => res.send('clube-cde-api ok'));
 
 /* ---------------- Hubla webhook ---------------- */
-app.post('/webhooks/hubla', express.json({ limit: '1mb' }), async (req, res) => {
+app.post('/webhooks/hubla', express.json({ limit: '1mb', type: '*/*' }), async (req, res) => {
   try {
     const incomingToken = req.get('x-hubla-token') || '';
-    if (!HUBLA_WEBHOOK_TOKEN || incomingToken !== HUBLA_WEBHOOK_TOKEN) {
+    const tokenValid = !!HUBLA_WEBHOOK_TOKEN && incomingToken === HUBLA_WEBHOOK_TOKEN;
+    try {
+      await pool.query(
+        'INSERT INTO webhook_log (token_valid, type, raw) VALUES ($1, $2, $3)',
+        [tokenValid, (req.body && req.body.type) || null, JSON.stringify(req.body || {})]
+      );
+    } catch (logErr) { console.error('webhook_log insert failed', logErr); }
+
+    if (!tokenValid) {
       return res.status(401).json({ ok: false, error: 'invalid token' });
     }
     const idempotencyKey = req.get('x-hubla-idempotency') || '';
@@ -186,7 +194,8 @@ function requireAdmin(req, res, next) {
 
 app.get('/admin', requireAdmin, async (req, res) => {
   const { rows } = await pool.query('SELECT * FROM members ORDER BY created_at DESC LIMIT 200');
-  res.send(renderAdminPage(rows));
+  const logs = await pool.query('SELECT * FROM webhook_log ORDER BY received_at DESC LIMIT 10');
+  res.send(renderAdminPage(rows, logs.rows));
 });
 
 app.post('/admin/grant', requireAdmin, async (req, res) => {
@@ -255,7 +264,7 @@ function renderSetPasswordPage(email, token) {
   `);
 }
 
-function renderAdminPage(rows) {
+function renderAdminPage(rows, logRows) {
   const list = rows.map(function(m) {
     var linkCol = '';
     if (m.status === 'pending' && m.set_password_token) {
@@ -263,6 +272,11 @@ function renderAdminPage(rows) {
     }
     return '<tr><td>' + escapeHtml(m.email) + '</td><td>' + escapeHtml(m.name || '') + '</td><td>' + m.status +
       '</td><td>' + m.source + '</td><td>' + new Date(m.created_at).toLocaleDateString('pt-BR') + '</td><td>' + linkCol + '</td></tr>';
+  }).join('');
+  const logList = (logRows || []).map(function(l) {
+    return '<tr><td>' + new Date(l.received_at).toLocaleString('pt-BR') + '</td><td>' + (l.token_valid ? 'sim' : 'NÃO') +
+      '</td><td>' + escapeHtml(l.type || '(vazio)') + '</td><td><pre style="white-space:pre-wrap;word-break:break-all;max-width:600px;margin:0;">' +
+      escapeHtml(JSON.stringify(l.raw)) + '</pre></td></tr>';
   }).join('');
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -293,6 +307,11 @@ function renderAdminPage(rows) {
   <table>
     <thead><tr><th>E-mail</th><th>Nome</th><th>Status</th><th>Origem</th><th>Desde</th><th>Link pendente</th></tr></thead>
     <tbody>${list}</tbody>
+  </table>
+  <h2 style="color:#C9A227;font-size:1rem;margin-top:32px;">Últimos webhooks recebidos (diagnóstico)</h2>
+  <table>
+    <thead><tr><th>Quando</th><th>Token válido?</th><th>Tipo</th><th>Payload</th></tr></thead>
+    <tbody>${logList || '<tr><td colspan="4">Nenhum webhook recebido ainda.</td></tr>'}</tbody>
   </table>
   <script>
     document.getElementById('f').addEventListener('submit', async function(ev){

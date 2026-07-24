@@ -28,6 +28,15 @@ async function init() {
       received_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS webhook_log (
+      id SERIAL PRIMARY KEY,
+      received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      token_valid BOOLEAN,
+      type TEXT,
+      raw JSONB
+    );
+  `);
 }
 
 module.exports = { pool, init };
