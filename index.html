@@ -801,7 +801,7 @@
       <button type="button" id="login-forgot">Esqueci minha senha</button>
       <button type="button" id="login-signup">Ainda não sou membro</button>
     </div>
-    <div class="login-demo-note">Acesso antecipado: use um e-mail e uma senha de teste (6 ou mais caracteres) pra entrar. Evite usar uma senha que você já usa em outro lugar — a autenticação definitiva chega junto com a integração de pagamento.</div>
+    <div class="login-demo-note">Ainda não é membro? Assine o Clube CDE e o acesso é liberado automaticamente por e-mail.</div>
   </div>
 </div>
 <div class="login-toast" id="login-toast"></div>
@@ -1581,6 +1581,7 @@
 
   var REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var HUBLA_CHECKOUT_URL = 'https://pay.hub.la/nwYTZWRKtMy1p3fDBtRa';
+  var API_BASE_URL = 'https://clube-cde-api.onrender.com';
 
   /* ---------------- Login / autenticação (demo) ---------------- */
   var LOGIN_KEY = 'cde_demo_session';
@@ -1613,21 +1614,37 @@
     var errEl = document.getElementById('login-error');
     var validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!validEmail || pass.length < 6){
+      errEl.textContent = 'Preencha um e-mail válido e uma senha com pelo menos 6 caracteres.';
       errEl.classList.add('show');
       return;
     }
     errEl.classList.remove('show');
     var btn = document.getElementById('login-submit');
     btn.disabled = true; btn.textContent = 'Entrando…';
-    setTimeout(function(){
-      localStorage.setItem(LOGIN_KEY, email);
+    fetch(API_BASE_URL + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pass })
+    }).then(function(r){
+      return r.json().then(function(data){ return { ok: r.ok, data: data }; });
+    }).then(function(res){
       btn.disabled = false; btn.textContent = 'Entrar';
+      if (!res.ok || !res.data.ok) {
+        errEl.textContent = (res.data && res.data.error) || 'Não foi possível entrar.';
+        errEl.classList.add('show');
+        return;
+      }
+      localStorage.setItem(LOGIN_KEY, JSON.stringify({ email: res.data.email, token: res.data.token, name: res.data.name }));
       showApp();
-      loginToastMsg('Sessão iniciada como ' + email);
-    }, 650);
+      loginToastMsg('Sessão iniciada como ' + res.data.name);
+    }).catch(function(){
+      btn.disabled = false; btn.textContent = 'Entrar';
+      errEl.textContent = 'Erro de conexão com o servidor. Tenta de novo em alguns segundos.';
+      errEl.classList.add('show');
+    });
   });
   document.getElementById('login-forgot').addEventListener('click', function(){
-    loginToastMsg('Redefinição de senha chega com a próxima versão. Por enquanto, é só entrar de novo com um e-mail e senha novos.');
+    loginToastMsg('Redefinição de senha chega com a próxima versão. Por enquanto, fale com o suporte do clube pra redefinir.');
   });
   document.getElementById('login-signup').addEventListener('click', function(){
     if (typeof showPaywall === 'function') showPaywall();
