@@ -375,6 +375,9 @@
 
   .mural-list { display: flex; flex-direction: column; }
   .mural-empty { padding: 40px 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; }
+  .trilhas-empty { padding: 60px 20px; text-align: center; max-width: 480px; margin: 0 auto; }
+  .trilhas-empty .k { color: var(--brass); font-family: 'Fraunces', serif; font-size: 1.15rem; margin-bottom: 10px; }
+  .trilhas-empty p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; }
   .mural-item { padding: 20px 0; border-bottom: 1px solid var(--hairline); display: flex; gap: 16px; }
   .mural-item:first-child { padding-top: 0; }
   .mural-avatar {
@@ -489,6 +492,7 @@
   .report-cell .delta { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--pine-bright); margin-top: 4px; }
 
   .report-section-title { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--umber); margin-bottom: 16px; }
+  .report-note { color: var(--text-dim); font-size: 0.84rem; line-height: 1.6; max-width: 520px; }
 
   .bar-compare { margin-bottom: 26px; }
   .bar-compare .bc-head { display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 8px; }
@@ -1049,154 +1053,39 @@
 
     <!-- RELATORIO -->
     <section id="view-relatorio" class="view">
-      <div class="report-period">Relatório mensal</div>
-      <h2 class="report-title">Julho de 2026</h2>
+      <div class="report-period">Relatório do clube</div>
+      <h2 class="report-title" id="report-title-el">—</h2>
 
       <div class="report-grid">
         <div class="report-cell">
-          <div class="num">07</div>
-          <div class="lbl">Conexões feitas</div>
-          <div class="delta">▲ 2 vs. junho</div>
+          <div class="num" id="report-members-el">—</div>
+          <div class="lbl">Membros ativos no clube</div>
         </div>
         <div class="report-cell">
-          <div class="num">3<span class="unit">/4</span></div>
-          <div class="lbl">Lives assistidas</div>
-          <div class="delta">▲ 1 vs. junho</div>
+          <div class="num" id="report-myposts-el">—</div>
+          <div class="lbl">Meus posts no mural</div>
         </div>
         <div class="report-cell">
-          <div class="num">41</div>
-          <div class="lbl">Visualizações de perfil</div>
-          <div class="delta">▲ 16 vs. junho</div>
+          <div class="num" id="report-openposts-el">—</div>
+          <div class="lbl">Posts em aberto no mural</div>
         </div>
         <div class="report-cell">
-          <div class="num">01</div>
-          <div class="lbl">Negócio fechado no clube</div>
-          <div class="delta" style="color:var(--brass)">Débora Aguiar · Construção Civil</div>
+          <div class="num" id="report-since-el">—</div>
+          <div class="lbl">Você no clube desde</div>
         </div>
       </div>
-
-      <div class="report-section-title">Você vs. média do clube</div>
-
-      <div class="bar-compare">
-        <div class="bc-head"><span>Conexões feitas</span><span class="mono">7 / méd. 4</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:87%"></div></div>
-        <div class="bar-track alt"><div class="bar-fill" style="width:50%"></div></div>
-        <div class="bar-caption">Acima da média do clube este mês.</div>
-      </div>
-
-      <div class="bar-compare">
-        <div class="bc-head"><span>Visualizações de perfil</span><span class="mono">41 / méd. 25</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
-        <div class="bar-track alt"><div class="bar-fill" style="width:50%"></div></div>
-        <div class="bar-caption">Perfil mais visto que a média — o mural ajuda nisso.</div>
-      </div>
-
-      <div class="report-section-title">Sequência de lives</div>
-      <div class="streak-row">
-        <div class="streak-num">6</div>
-        <div class="streak-dots" aria-hidden="true">
-          <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-          <div class="streak-dot"></div><div class="streak-dot"></div><div class="streak-dot"></div>
-          <div class="streak-dot next"></div>
-        </div>
-        <div class="streak-cap">semanas seguidas assistindo a live quinzenal. Não quebre agora.</div>
-      </div>
+      <div class="report-note">Estatísticas mais detalhadas (conexões, visualizações de perfil, lives assistidas) chegam conforme o clube cresce e essas atividades passam a ser registradas.</div>
     </section>
 
     <!-- TRILHAS -->
     <section id="view-trilhas" class="view">
       <div class="view-head">
         <h2>Trilhas</h2>
-        <div class="sub">Séries de 4 a 6 episódios, liberadas aos poucos — pautadas pelas dúvidas mais recorrentes do quiz do CDE e pelos hot seats, não por uma grade fixa.</div>
+        <div class="sub">Séries de episódios e acervo de lives do clube.</div>
       </div>
-
-      <div class="trilha-card">
-        <div class="trilha-head">
-          <div class="trilha-top">
-            <h3 class="trilha-title">Precificação sem medo</h3>
-            <span class="trilha-count">2/5 assistidos</span>
-          </div>
-          <div class="trilha-pauta"><span class="tag">Pauta</span><span>Dúvida mais recorrente no quiz do CDE nos últimos 2 meses.</span></div>
-          <div class="trilha-progress-track"><div class="trilha-progress-fill" style="width:40%"></div></div>
-        </div>
-        <div class="episode-list">
-          <div class="episode-row"><span class="ep-num">01</span><div class="ep-body"><div class="ep-title">Por que seu preço tá errado</div><div class="ep-dur">18 min</div></div><span class="ep-status watched">✓ Assistido</span></div>
-          <div class="episode-row"><span class="ep-num">02</span><div class="ep-body"><div class="ep-title">Custo fixo vs. variável, na prática</div><div class="ep-dur">22 min</div></div><span class="ep-status watched">✓ Assistido</span></div>
-          <div class="episode-row"><span class="ep-num">03</span><div class="ep-body"><div class="ep-title">Como calcular sua margem real</div><div class="ep-dur">20 min</div></div><span class="ep-status available">▶ Disponível</span></div>
-          <div class="episode-row"><span class="ep-num">04</span><div class="ep-body"><div class="ep-title locked">Precificando serviço recorrente</div><div class="ep-dur">19 min</div></div><span class="ep-status locked">🔒 Libera em 4 dias</span></div>
-          <div class="episode-row"><span class="ep-num">05</span><div class="ep-body"><div class="ep-title locked">Reajuste sem perder cliente</div><div class="ep-dur">17 min</div></div><span class="ep-status locked">🔒 Libera em 11 dias</span></div>
-        </div>
-      </div>
-
-      <div class="trilha-card">
-        <div class="trilha-head">
-          <div class="trilha-top">
-            <h3 class="trilha-title">Contratar sem quebrar o caixa</h3>
-            <span class="trilha-count">1/4 assistidos</span>
-          </div>
-          <div class="trilha-pauta"><span class="tag">Pauta</span><span>Puxada pelo hot seat do Bruno Estevão sobre CLT vs. PJ.</span></div>
-          <div class="trilha-progress-track"><div class="trilha-progress-fill" style="width:25%"></div></div>
-        </div>
-        <div class="episode-list">
-          <div class="episode-row"><span class="ep-num">01</span><div class="ep-body"><div class="ep-title">CLT, PJ ou terceirizado: o que cabe no seu caixa</div><div class="ep-dur">24 min</div></div><span class="ep-status watched">✓ Assistido</span></div>
-          <div class="episode-row"><span class="ep-num">02</span><div class="ep-body"><div class="ep-title">O custo real que ninguém te conta</div><div class="ep-dur">21 min</div></div><span class="ep-status available">▶ Disponível</span></div>
-          <div class="episode-row"><span class="ep-num">03</span><div class="ep-body"><div class="ep-title locked">Como estruturar um processo seletivo enxuto</div><div class="ep-dur">18 min</div></div><span class="ep-status locked">🔒 Libera em 6 dias</span></div>
-          <div class="episode-row"><span class="ep-num">04</span><div class="ep-body"><div class="ep-title locked">Demissão: os erros que mais custam caro</div><div class="ep-dur">23 min</div></div><span class="ep-status locked">🔒 Libera em 13 dias</span></div>
-        </div>
-      </div>
-
-      <div class="trilha-card">
-        <div class="trilha-head">
-          <div class="trilha-top">
-            <h3 class="trilha-title">Indicação vira negócio</h3>
-            <span class="trilha-count">0/4 assistidos</span>
-          </div>
-          <div class="trilha-pauta"><span class="tag">Pauta</span><span>Puxada pela baixa taxa de conversão de matches em negócio, do relatório de saúde do clube.</span></div>
-          <div class="trilha-progress-track"><div class="trilha-progress-fill" style="width:0%"></div></div>
-        </div>
-        <div class="episode-list">
-          <div class="episode-row"><span class="ep-num">01</span><div class="ep-body"><div class="ep-title">Por que sua indicação não vira venda</div><div class="ep-dur">16 min</div></div><span class="ep-status available">▶ Disponível</span></div>
-          <div class="episode-row"><span class="ep-num">02</span><div class="ep-body"><div class="ep-title locked">Como pedir indicação sem parecer chato</div><div class="ep-dur">14 min</div></div><span class="ep-status locked">🔒 Libera em 3 dias</span></div>
-          <div class="episode-row"><span class="ep-num">03</span><div class="ep-body"><div class="ep-title locked">Fechando com quem veio do clube</div><div class="ep-dur">19 min</div></div><span class="ep-status locked">🔒 Libera em 10 dias</span></div>
-          <div class="episode-row"><span class="ep-num">04</span><div class="ep-body"><div class="ep-title locked">Follow-up: o passo que todo mundo pula</div><div class="ep-dur">15 min</div></div><span class="ep-status locked">🔒 Libera em 17 dias</span></div>
-        </div>
-      </div>
-
-      <div class="lives-block">
-        <div class="view-head" style="margin-bottom:16px;">
-          <h2 style="font-size:1.3rem;">Acervo de lives</h2>
-          <div class="sub">Lives quinzenais gravadas, com resumo e transcrição automática — buscável por tema.</div>
-        </div>
-        <input class="lives-search" type="text" placeholder="Buscar por tema, convidado ou palavra-chave…">
-        <div>
-          <div class="live-card">
-            <div class="live-date mono">08 jul</div>
-            <div class="live-body">
-              <div class="live-title">Como precificar sem sentir vergonha do preço</div>
-              <div class="live-meta">Com Marcelo Andrade · 52 min · transcrição disponível</div>
-              <div class="live-resumo">Resumo do agente: Marcelo defende que preço baixo não fideliza — fideliza é entrega. Trecho mais assistido: a diferença entre desconto e reposicionamento.</div>
-              <div class="live-tags"><span class="live-tag">precificação</span><span class="live-tag">margem</span></div>
-            </div>
-          </div>
-          <div class="live-card">
-            <div class="live-date mono">24 jun</div>
-            <div class="live-body">
-              <div class="live-title">Hot seat: fluxo de caixa em choque</div>
-              <div class="live-meta">Com Júnior Almeida · 61 min · transcrição disponível</div>
-              <div class="live-resumo">Resumo do agente: hot seat real com um membro do clube reorganizando o caixa ao vivo. Virou a origem da trilha "Contratar sem quebrar o caixa".</div>
-              <div class="live-tags"><span class="live-tag">caixa</span><span class="live-tag">hot seat</span></div>
-            </div>
-          </div>
-          <div class="live-card">
-            <div class="live-date mono">10 jun</div>
-            <div class="live-body">
-              <div class="live-title">Indicação que vira contrato, não só cafezinho</div>
-              <div class="live-meta">Com especialista convidado · 48 min · transcrição disponível</div>
-              <div class="live-resumo">Resumo do agente: framework de 3 passos pra transformar indicação de network em proposta formal, sem parecer forçado.</div>
-              <div class="live-tags"><span class="live-tag">indicação</span><span class="live-tag">vendas</span></div>
-            </div>
-          </div>
-        </div>
+      <div class="trilhas-empty">
+        <div class="k">Conteúdo chegando em breve</div>
+        <p>As trilhas e o acervo de lives do CDE estão sendo organizados e vão aparecer aqui em breve, com o material real do clube.</p>
       </div>
     </section>
 
@@ -2009,7 +1898,25 @@
         if (!data || !data.ok) return;
         MURAL = data.posts;
         renderMural();
+        renderRelatorio();
       }).catch(function(){});
+  }
+  function renderRelatorio(){
+    var titleEl = document.getElementById('report-title-el');
+    if (titleEl) titleEl.textContent = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    var membersEl = document.getElementById('report-members-el');
+    if (membersEl) membersEl.textContent = MEMBERS.length ? String(MEMBERS.length) : '—';
+    var myPostsEl = document.getElementById('report-myposts-el');
+    if (myPostsEl) myPostsEl.textContent = String(MURAL.filter(function(p){ return p.isMine; }).length);
+    var openPostsEl = document.getElementById('report-openposts-el');
+    if (openPostsEl) openPostsEl.textContent = String(MURAL.filter(function(p){ return p.status === 'aberto'; }).length);
+    var sinceEl = document.getElementById('report-since-el');
+    if (sinceEl) {
+      var you = MEMBERS.filter(function(m){ return m.role === 'you'; })[0];
+      sinceEl.textContent = (you && you.memberSince)
+        ? new Date(you.memberSince).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+        : '—';
+    }
   }
   var muralPostToggle = document.getElementById('mural-post-toggle');
   var muralPostForm = document.getElementById('mural-post-form');
@@ -2162,8 +2069,8 @@
         var mine = MEMBERS.filter(function(m){ return m.role === 'you'; })[0];
         YOU_ID = mine ? mine.id : null;
         EDGES = [];
-        MURAL = [];
         initRedeAndMural();
+        renderRelatorio();
       }).catch(function(){});
   }
   fetchNetworkMembers();
