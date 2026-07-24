@@ -231,15 +231,11 @@ app.get('/me', requireSession, async (req, res) => {
   res.json({ ok: true, ...memberToProfile(rows[0]) });
 });
 
-app.post('/me', requireSession, async (req, res) => {
-  const body = req.body || {};
-  if (body.avatarUrl && String(body.avatarUrl).length > 3500000) {
-    return res.status(400).json({ ok: false, error: 'Foto muito grande. Tente uma imagem menor.' });
-  }
+async function updateMemberProfile(email, body) {
   const fieldLimits = { name: 80, avatarUrl: 3500000, offer: 400, seeking: 400, niche: 120, city: 120, instagram: 120, whatsapp: 40 };
   const columns = { name: 'name', avatarUrl: 'avatar_url', offer: 'offer', seeking: 'seeking', niche: 'niche', city: 'city', instagram: 'instagram', whatsapp: 'whatsapp' };
   const sets = [];
-  const values = [req.memberEmail];
+  const values = [email];
   Object.keys(columns).forEach(function(field) {
     if (body[field] === undefined) return;
     const val = body[field] === null ? null : String(body[field]).trim().slice(0, fieldLimits[field]);
@@ -249,8 +245,17 @@ app.post('/me', requireSession, async (req, res) => {
   if (sets.length) {
     await pool.query('UPDATE members SET ' + sets.join(', ') + ' WHERE email = $1', values);
   }
-  const { rows } = await pool.query('SELECT * FROM members WHERE email = $1', [req.memberEmail]);
-  res.json({ ok: true, ...memberToProfile(rows[0]) });
+  const { rows } = await pool.query('SELECT * FROM members WHERE email = $1', [email]);
+  return rows[0];
+}
+
+app.post('/me', requireSession, async (req, res) => {
+  const body = req.body || {};
+  if (body.avatarUrl && String(body.avatarUrl).length > 3500000) {
+    return res.status(400).json({ ok: false, error: 'Foto muito grande. Tente uma imagem menor.' });
+  }
+  const row = await updateMemberProfile(req.memberEmail, body);
+  res.json({ ok: true, ...memberToProfile(row) });
 });
 
 app.get('/members/public', requireSession, async (req, res) => {
@@ -348,6 +353,13 @@ app.post('/admin/members/:email/delete', requireAdmin, async (req, res) => {
   await pool.query('DELETE FROM mural_posts WHERE member_email = $1', [email]);
   await pool.query('DELETE FROM members WHERE email = $1', [email]);
   res.json({ ok: true });
+});
+
+app.post('/admin/members/:email/update', requireAdmin, async (req, res) => {
+  const email = String(req.params.email || '').trim().toLowerCase();
+  const row = await updateMemberProfile(email, req.body || {});
+  if (!row) return res.status(404).json({ ok: false, error: 'Membro não encontrado.' });
+  res.json({ ok: true, ...memberToProfile(row) });
 });
 
 /* ---------------- HTML helpers (self-contained, no external assets) ---------------- */
