@@ -882,7 +882,7 @@
         </div>
         <h3>Grupo oficial do Clube CDE</h3>
         <p>Só pra membros ativos. Ao entrar, se apresente: nome, nicho e cidade — é assim que a primeira indicação começa.</p>
-        <a class="wa-btn" id="wa-join-btn" href="https://chat.whatsapp.com/SEU-LINK-AQUI" target="_blank" rel="noopener noreferrer">Entrar no grupo do WhatsApp</a>
+        <a class="wa-btn" id="wa-join-btn" href="https://chat.whatsapp.com/BYRz7JSyK59F1loYFygF12?s=cl&amp;p=i&amp;mlu=4&amp;amv=2" target="_blank" rel="noopener noreferrer">Entrar no grupo do WhatsApp</a>
         <div class="wa-note">Link de convite do grupo — troque pela URL real antes de divulgar (veja o README do projeto).</div>
       </div>
       <div class="wa-rules">
@@ -1580,6 +1580,7 @@
   "use strict";
 
   var REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var HUBLA_CHECKOUT_URL = 'https://pay.hub.la/nwYTZWRKtMy1p3fDBtRa';
 
   /* ---------------- Login / autenticação (demo) ---------------- */
   var LOGIN_KEY = 'cde_demo_session';
@@ -2830,9 +2831,7 @@
   document.getElementById('paywall-dismiss').addEventListener('click', hidePaywall);
   paywallBackdrop.addEventListener('click', function(ev){ if (ev.target === paywallBackdrop) hidePaywall(); });
   document.getElementById('paywall-cta').addEventListener('click', function(){
-    var btn = this;
-    btn.textContent = 'Isso levaria você pro checkout ✓';
-    setTimeout(function(){ hidePaywall(); btn.textContent = 'Quero entrar no clube'; }, 1500);
+    window.open(HUBLA_CHECKOUT_URL, '_blank', 'noopener');
   });
 
   /* Checagem inicial de sessão — roda por último, depois do resto do app já estar montado */
