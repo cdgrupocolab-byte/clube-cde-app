@@ -220,6 +220,7 @@ function memberToProfile(m) {
   return {
     email: m.email, name: m.name, avatarUrl: m.avatar_url,
     offer: m.offer, seeking: m.seeking, niche: m.niche, city: m.city,
+    instagram: m.instagram, whatsapp: m.whatsapp,
     memberSince: m.created_at
   };
 }
@@ -235,8 +236,8 @@ app.post('/me', requireSession, async (req, res) => {
   if (body.avatarUrl && String(body.avatarUrl).length > 3500000) {
     return res.status(400).json({ ok: false, error: 'Foto muito grande. Tente uma imagem menor.' });
   }
-  const fieldLimits = { name: 80, avatarUrl: 3500000, offer: 400, seeking: 400, niche: 120, city: 120 };
-  const columns = { name: 'name', avatarUrl: 'avatar_url', offer: 'offer', seeking: 'seeking', niche: 'niche', city: 'city' };
+  const fieldLimits = { name: 80, avatarUrl: 3500000, offer: 400, seeking: 400, niche: 120, city: 120, instagram: 120, whatsapp: 40 };
+  const columns = { name: 'name', avatarUrl: 'avatar_url', offer: 'offer', seeking: 'seeking', niche: 'niche', city: 'city', instagram: 'instagram', whatsapp: 'whatsapp' };
   const sets = [];
   const values = [req.memberEmail];
   Object.keys(columns).forEach(function(field) {
@@ -254,12 +255,13 @@ app.post('/me', requireSession, async (req, res) => {
 
 app.get('/members/public', requireSession, async (req, res) => {
   const { rows } = await pool.query(
-    "SELECT id, email, name, niche, city, avatar_url, offer, seeking, created_at FROM members WHERE status = 'active' ORDER BY created_at ASC LIMIT 500"
+    "SELECT id, email, name, niche, city, avatar_url, offer, seeking, instagram, whatsapp, created_at FROM members WHERE status = 'active' ORDER BY created_at ASC LIMIT 500"
   );
   const members = rows.map(function(m) {
     return {
       id: m.id, name: m.name, niche: m.niche, city: m.city, avatarUrl: m.avatar_url,
-      offer: m.offer, seeking: m.seeking, memberSince: m.created_at,
+      offer: m.offer, seeking: m.seeking, instagram: m.instagram, whatsapp: m.whatsapp,
+      memberSince: m.created_at,
       role: m.email === req.memberEmail ? 'you' : 'member'
     };
   });

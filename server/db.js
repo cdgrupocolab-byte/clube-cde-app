@@ -43,6 +43,8 @@ async function init() {
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS seeking TEXT;`);
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS niche TEXT;`);
   await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS city TEXT;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS instagram TEXT;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS whatsapp TEXT;`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS mural_posts (
       id SERIAL PRIMARY KEY,

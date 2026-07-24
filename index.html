@@ -217,13 +217,15 @@
 
   /* ---------- REDE view ---------- */
   #view-rede { position: relative; }
-  .rede-hero { height: calc(100vh - 68px); min-height: 480px; position: relative; }
-  .rede-canvas-wrap { position: absolute; inset: 0; }
-  canvas#network { width: 100%; height: 100%; display: block; cursor: grab; }
-
-  .member-directory { padding: 40px clamp(16px, 4vw, 40px) 70px; border-top: 1px solid var(--hairline); }
+  .member-directory { padding: 32px clamp(16px, 4vw, 40px) 70px; }
   .md-title { font-size: 1.1rem; color: var(--brass); margin: 0 0 4px; font-family: 'Fraunces', serif; }
   .md-sub { color: var(--text-dim); font-size: 0.84rem; margin-bottom: 22px; }
+  .rede-stats-row {
+    display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap;
+    background: var(--ink-raised); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 14px 18px; margin: 18px 0;
+  }
+  .rede-filters-row { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
   .md-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
   .md-card { background: var(--ink-raised); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; }
   .md-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -239,11 +241,14 @@
   .md-field { font-size: 0.8rem; margin-top: 10px; line-height: 1.4; }
   .md-field .md-label { display: block; color: var(--text-faint); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
   .md-empty { color: var(--text-dim); font-size: 0.86rem; }
-
-  .rede-overlay-top {
-    position: absolute; top: 20px; left: clamp(16px, 4vw, 40px);
-    display: flex; gap: 10px; align-items: center; z-index: 10;
+  .md-contact-row { display: flex; gap: 8px; margin-top: 12px; }
+  .md-contact-btn {
+    font-size: 0.74rem; font-weight: 600; text-decoration: none; padding: 6px 12px;
+    border-radius: 999px; border: 1px solid var(--hairline);
   }
+  .md-contact-btn.ig { color: #E1306C; border-color: rgba(225,48,108,0.4); }
+  .md-contact-btn.wa { color: #25D366; border-color: rgba(37,211,102,0.4); }
+
   .filter-select {
     background: rgba(27,31,38,0.82);
     border: 1px solid var(--hairline);
@@ -259,36 +264,9 @@
     cursor: pointer;
   }
 
-  .rede-overlay-stats {
-    position: absolute; bottom: 20px; left: clamp(16px, 4vw, 40px);
-    z-index: 10; display: flex; gap: 18px; align-items: baseline;
-    background: rgba(14,17,20,0.55);
-    padding: 10px 16px; border-radius: 10px;
-    border: 1px solid var(--hairline-2);
-  }
   .stat-inline { display: flex; gap: 6px; align-items: baseline; }
   .stat-inline .n { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--brass); }
   .stat-inline .l { font-size: 0.7rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
-
-  .rede-caption {
-    position: absolute; top: 20px; right: clamp(16px, 4vw, 40px);
-    z-index: 10; max-width: 220px; text-align: right;
-  }
-  .rede-caption .k { font-family: 'Fraunces', serif; font-style: italic; font-size: 1rem; color: var(--paper); }
-  .rede-caption .d { font-size: 0.74rem; color: var(--text-faint); margin-top: 4px; }
-
-  .node-tooltip {
-    position: absolute; z-index: 20; pointer-events: none;
-    background: var(--ink-raised); border: 1px solid var(--brass-dim);
-    border-radius: 10px; padding: 10px 14px; min-width: 180px;
-    box-shadow: var(--shadow);
-    opacity: 0; transform: translate(-50%, calc(-100% - 14px)) scale(0.96);
-    transition: opacity 0.12s ease, transform 0.12s ease;
-  }
-  .node-tooltip.show { opacity: 1; transform: translate(-50%, calc(-100% - 14px)) scale(1); }
-  .node-tooltip .name { font-family: 'Fraunces', serif; font-size: 1rem; }
-  .node-tooltip .meta { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
-  .node-tooltip .hint { font-size: 0.68rem; color: var(--brass); margin-top: 7px; }
 
   .toast-match {
     position: absolute; bottom: 24px; right: clamp(16px, 4vw, 40px);
@@ -935,11 +913,13 @@
   <main>
     <!-- REDE -->
     <section id="view-rede" class="view active">
-      <div class="rede-hero">
-        <div class="rede-canvas-wrap">
-          <canvas id="network"></canvas>
+      <div class="member-directory">
+        <div class="view-head">
+          <h2>Rede</h2>
+          <div class="sub">Perfil completo de quem já faz parte do clube.</div>
         </div>
-        <div class="rede-overlay-top">
+        <div class="rede-stats-row" id="rede-stats"></div>
+        <div class="rede-filters-row">
           <select class="filter-select" id="filter-nicho" aria-label="Filtrar por nicho">
             <option value="">Todos os nichos</option>
           </select>
@@ -947,20 +927,6 @@
             <option value="">Todas as cidades</option>
           </select>
         </div>
-        <div class="rede-caption">
-          <div class="k">O network, ao vivo</div>
-          <div class="d">Cada nó é um membro. O ponto dourado no centro é você.</div>
-        </div>
-        <div class="rede-overlay-stats" id="rede-stats"></div>
-        <div class="node-tooltip" id="tooltip">
-          <div class="name" id="tooltip-name"></div>
-          <div class="meta" id="tooltip-meta"></div>
-          <div class="hint" id="tooltip-hint"></div>
-        </div>
-      </div>
-      <div class="member-directory">
-        <h3 class="md-title">Membros do clube</h3>
-        <div class="md-sub">Perfil completo de quem já faz parte — role pra ver todo mundo.</div>
         <div class="md-grid" id="md-grid"></div>
       </div>
     </section>
@@ -1066,6 +1032,8 @@
             </label>
             <textarea id="profile-offer-input" placeholder="O que você oferece" maxlength="400" rows="2"></textarea>
             <textarea id="profile-seeking-input" placeholder="O que você procura" maxlength="400" rows="2"></textarea>
+            <input type="text" id="profile-instagram-input" placeholder="Instagram (@seuusuario)" maxlength="120">
+            <input type="text" id="profile-whatsapp-input" placeholder="WhatsApp (com DDD, só números)" maxlength="40">
             <button type="button" id="profile-save-btn">Salvar</button>
             <span class="profile-save-msg" id="profile-save-msg"></span>
           </div>
@@ -1628,10 +1596,6 @@
     appRoot.classList.remove('hidden');
     if (typeof fetchNetworkMembers === 'function') fetchNetworkMembers();
     if (typeof fetchMuralPosts === 'function') fetchMuralPosts();
-    requestAnimationFrame(function(){
-      if (typeof resizeCanvas === 'function') resizeCanvas();
-      if (typeof resumeCanvas === 'function') resumeCanvas();
-    });
   }
   function showGate(){
     appRoot.classList.add('hidden');
@@ -1691,11 +1655,15 @@
     var cityInput = document.getElementById('profile-city-input');
     var offerInput = document.getElementById('profile-offer-input');
     var seekingInput = document.getElementById('profile-seeking-input');
+    var instagramInput = document.getElementById('profile-instagram-input');
+    var whatsappInput = document.getElementById('profile-whatsapp-input');
     if (nameInput) nameInput.value = profile.name || '';
     if (nicheInput) nicheInput.value = profile.niche || '';
     if (cityInput) cityInput.value = profile.city || '';
     if (offerInput) offerInput.value = profile.offer || '';
     if (seekingInput) seekingInput.value = profile.seeking || '';
+    if (instagramInput) instagramInput.value = profile.instagram || '';
+    if (whatsappInput) whatsappInput.value = profile.whatsapp || '';
     pendingAvatarData = null;
   }
   function loadProfile(){
@@ -1755,7 +1723,9 @@
         niche: document.getElementById('profile-niche-input').value.trim(),
         city: document.getElementById('profile-city-input').value.trim(),
         offer: document.getElementById('profile-offer-input').value.trim(),
-        seeking: document.getElementById('profile-seeking-input').value.trim()
+        seeking: document.getElementById('profile-seeking-input').value.trim(),
+        instagram: document.getElementById('profile-instagram-input').value.trim(),
+        whatsapp: document.getElementById('profile-whatsapp-input').value.trim()
       };
       if (pendingAvatarData) payload.avatarUrl = pendingAvatarData;
       profileSaveBtn.disabled = true;
@@ -1872,7 +1842,6 @@
       v.classList.toggle('active', match);
       v.style.display = match ? 'block' : 'none';
     });
-    if (name === 'rede') { requestAnimationFrame(resizeCanvas); resumeCanvas(); }
   }
   var tabsNav = document.getElementById('tabs-nav');
   var navToggle = document.getElementById('nav-toggle');
@@ -2045,62 +2014,36 @@
       '<div class="stat-inline"><span class="n mono">'+dealCount+'</span><span class="l">Negócios fechados</span></div>';
   }
 
-  /* ---------------- Network canvas ---------------- */
-  var canvas = document.getElementById('network');
-  var ctx = canvas.getContext('2d');
-  var wrap = document.querySelector('.rede-canvas-wrap');
-  var tooltip = document.getElementById('tooltip');
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var W = 0, H = 0;
-
-  function seeded(seed){
-    var s = seed;
-    return function(){ s = (s*1664525 + 1013904223) >>> 0; return s / 4294967296; };
-  }
-  var rand = seeded(20260714);
-  var nodePos = {}; // id -> {ax, ay} normalized -1..1
-  var nodeMeta = {};
-
-  function computeLayout(){
-    rand = seeded(20260714);
-    nodePos = {};
-    nodeMeta = {};
-    var you = YOU_ID !== null ? byId(YOU_ID) : null;
-    if (you) nodePos[YOU_ID] = { ax: 0, ay: 0 };
-    var uniqueNiches = [];
-    MEMBERS.forEach(function(m){
-      if (m.id === YOU_ID) return;
-      var n = m.niche || 'Área não informada';
-      if (uniqueNiches.indexOf(n) === -1) uniqueNiches.push(n);
-    });
-    uniqueNiches.forEach(function(niche, ni){
-      var members = MEMBERS.filter(function(m){ return m.id !== YOU_ID && (m.niche || 'Área não informada') === niche; });
-      var sectorStart = (ni / uniqueNiches.length) * Math.PI * 2;
-      var sectorWidth = (Math.PI * 2) / uniqueNiches.length;
-      members.forEach(function(m, i){
-        var a = sectorStart + ((i+0.5)/members.length) * sectorWidth * 0.86 + sectorWidth*0.07;
-        var r = 0.4 + rand()*0.5;
-        nodePos[m.id] = { ax: Math.cos(a)*r, ay: Math.sin(a)*r };
-      });
-    });
-    MEMBERS.forEach(function(m){
-      nodeMeta[m.id] = { phase: rand()*Math.PI*2, speed: 0.35 + rand()*0.25 };
-    });
-  }
-
+  var activeFilterNiche = '';
+  var activeFilterCity = '';
   var mdGrid = document.getElementById('md-grid');
+  function instagramUrl(handle){
+    var h = String(handle || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, '');
+    return h ? 'https://instagram.com/' + h : '';
+  }
+  function whatsappUrl(phone){
+    var digits = String(phone || '').replace(/\D/g, '');
+    return digits ? 'https://wa.me/' + digits : '';
+  }
   function renderDirectory(){
     if (!mdGrid) return;
     mdGrid.innerHTML = '';
-    if (!MEMBERS.length) {
-      mdGrid.innerHTML = '<div class="md-empty">Ainda não há membros com perfil completo.</div>';
+    var filtered = MEMBERS.filter(function(m){
+      if (activeFilterNiche && m.niche !== activeFilterNiche) return false;
+      if (activeFilterCity && m.city !== activeFilterCity) return false;
+      return true;
+    });
+    if (!filtered.length) {
+      mdGrid.innerHTML = '<div class="md-empty">' + (MEMBERS.length ? 'Nenhum membro com esse filtro.' : 'Ainda não há membros com perfil completo.') + '</div>';
       return;
     }
-    MEMBERS.forEach(function(m){
+    filtered.forEach(function(m){
       var card = document.createElement('div');
       card.className = 'md-card';
       var avatarStyle = m.avatarUrl ? ' style="background-image:url(\''+m.avatarUrl.replace(/'/g,"%27")+'\')"' : '';
       var metaParts = [m.niche, m.city].filter(Boolean).join(' · ');
+      var igUrl = instagramUrl(m.instagram);
+      var waUrl = whatsappUrl(m.whatsapp);
       card.innerHTML =
         '<div class="md-card-top">' +
           '<div class="md-avatar"'+avatarStyle+'>'+(m.avatarUrl ? '' : initials(m.name))+'</div>' +
@@ -2108,7 +2051,11 @@
           '<div class="md-meta">'+escapeHtml(metaParts || 'Perfil incompleto')+'</div></div>' +
         '</div>' +
         (m.offer ? '<div class="md-field"><span class="md-label">Oferece</span>'+escapeHtml(m.offer)+'</div>' : '') +
-        (m.seeking ? '<div class="md-field"><span class="md-label">Procura</span>'+escapeHtml(m.seeking)+'</div>' : '');
+        (m.seeking ? '<div class="md-field"><span class="md-label">Procura</span>'+escapeHtml(m.seeking)+'</div>' : '') +
+        (igUrl || waUrl ? '<div class="md-contact-row">' +
+          (igUrl ? '<a href="'+igUrl+'" target="_blank" rel="noopener noreferrer" class="md-contact-btn ig">Instagram</a>' : '') +
+          (waUrl ? '<a href="'+waUrl+'" target="_blank" rel="noopener noreferrer" class="md-contact-btn wa">WhatsApp</a>' : '') +
+        '</div>' : '');
       mdGrid.appendChild(card);
     });
   }
@@ -2117,7 +2064,6 @@
     renderMural();
     populateFilters();
     renderStats();
-    computeLayout();
     renderDirectory();
   }
   initRedeAndMural();
@@ -2139,176 +2085,8 @@
   }
   fetchNetworkMembers();
 
-  function resizeCanvas(){
-    var rect = wrap.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width = W * DPR; canvas.height = H * DPR;
-    canvas.style.width = W+'px'; canvas.style.height = H+'px';
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  function toPx(id, t){
-    var p = nodePos[id];
-    var meta = nodeMeta[id];
-    var cx = W/2, cy = H/2;
-    var radiusScale = Math.min(W,H) * 0.46;
-    var jitterX = 0, jitterY = 0;
-    if (!REDUCE_MOTION) {
-      jitterX = Math.sin(t*meta.speed + meta.phase) * 6;
-      jitterY = Math.cos(t*meta.speed*0.8 + meta.phase) * 6;
-    }
-    return { x: cx + p.ax*radiusScale + jitterX, y: cy + p.ay*radiusScale + jitterY };
-  }
-
-  function nodeRadius(m){
-    if (m.role === 'you') return 11;
-    if (m.role === 'founder') return 9;
-    return 6.5;
-  }
-
-  var activeFilterNiche = '';
-  var activeFilterCity = '';
-  function isDimmed(m){
-    if (m.role === 'founder' || m.role === 'you') return false;
-    if (activeFilterNiche && m.niche !== activeFilterNiche) return true;
-    if (activeFilterCity && m.city !== activeFilterCity) return true;
-    return false;
-  }
-
-  var startTime = performance.now();
-  var entranceDur = REDUCE_MOTION ? 0 : 1400;
-  var highlightNodeId = null;
-  var highlightUntil = 0;
-
-  function draw(now){
-    var t = (now - startTime) / 1000;
-    var entranceP = REDUCE_MOTION ? 1 : Math.min(1, (now - startTime) / entranceDur);
-    ctx.clearRect(0,0,W,H);
-
-    // edges
-    EDGES.forEach(function(e, i){
-      var a = byId(e[0]), b = byId(e[1]), deal = !!e[2];
-      var pa = toPx(a.id, t), pb = toPx(b.id, t);
-      var edgeDelay = i * 0.028;
-      var edgeP = Math.max(0, Math.min(1, (entranceP - edgeDelay) / 0.5));
-      if (edgeP <= 0) return;
-      var dimmed = isDimmed(a) || isDimmed(b);
-      var isYouEdge = a.id === YOU_ID || b.id === YOU_ID;
-      ctx.save();
-      ctx.globalAlpha = (dimmed ? 0.08 : (deal ? 0.85 : (isYouEdge ? 0.7 : 0.32))) * edgeP;
-      ctx.strokeStyle = deal ? '#C9A227' : (isYouEdge ? '#C9A227' : '#8A6E4B');
-      ctx.lineWidth = deal ? 1.6 : (a.role==='founder'||b.role==='founder' ? 1.1 : 0.8);
-      ctx.beginPath();
-      ctx.moveTo(pa.x, pa.y);
-      ctx.lineTo(pa.x + (pb.x-pa.x)*edgeP, pa.y + (pb.y-pa.y)*edgeP);
-      ctx.stroke();
-      ctx.restore();
-    });
-
-    // nodes
-    MEMBERS.forEach(function(m, i){
-      var p = toPx(m.id, t);
-      var nodeDelay = i * 0.03;
-      var nodeP = Math.max(0, Math.min(1, (entranceP - nodeDelay) / 0.4));
-      if (nodeP <= 0) return;
-      var r = nodeRadius(m) * (0.6 + 0.4*nodeP);
-      var dimmed = isDimmed(m);
-      var pulsing = (highlightNodeId === m.id && now < highlightUntil);
-
-      ctx.save();
-      ctx.globalAlpha = (dimmed ? 0.22 : 1) * nodeP;
-
-      if (pulsing) {
-        var pulseR = r + 10 + Math.sin(now/140)*3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, pulseR, 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(201,162,39,0.55)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-
-      var fill = '#1B1F26';
-      var stroke = '#8A6E4B';
-      if (m.role === 'you') { fill = '#14171C'; stroke = '#C9A227'; }
-      else if (m.role === 'founder') { fill = '#14171C'; stroke = '#C9A227'; }
-      else if (dimmed) { stroke = 'rgba(138,110,75,0.4)'; }
-      else { stroke = 'rgba(201,162,39,0.55)'; }
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, r, 0, Math.PI*2);
-      ctx.fillStyle = fill;
-      ctx.fill();
-      ctx.lineWidth = (m.role==='you') ? 2.2 : 1.3;
-      ctx.strokeStyle = stroke;
-      ctx.stroke();
-
-      if (!dimmed && (m.role === 'you' || m.role === 'founder' || r > 8)) {
-        ctx.fillStyle = 'rgba(237,234,227,0.82)';
-        ctx.font = (m.role==='you' ? '600 ' : '500 ') + '10px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        var label = m.role === 'you' ? 'você' : m.name.split(' ')[0];
-        ctx.fillText(label, p.x, p.y + r + 14);
-      }
-
-      ctx.restore();
-    });
-
-    if (document.getElementById('view-rede').classList.contains('active') && !document.hidden && !appRoot.classList.contains('hidden')) {
-      requestAnimationFrame(draw);
-    } else {
-      canvasRunning = false;
-    }
-  }
-  var canvasRunning = true;
-  function resumeCanvas(){
-    if (!canvasRunning && document.getElementById('view-rede').classList.contains('active')){
-      canvasRunning = true;
-      requestAnimationFrame(draw);
-    }
-  }
-  document.addEventListener('visibilitychange', resumeCanvas);
-  requestAnimationFrame(draw);
-
-  /* ---------------- Interaction ---------------- */
-  function findNodeAt(px, py, t){
-    var hit = null, hitDist = 999;
-    MEMBERS.forEach(function(m){
-      var p = toPx(m.id, t);
-      var r = nodeRadius(m) + 6;
-      var d = Math.hypot(px-p.x, py-p.y);
-      if (d < r && d < hitDist) { hit = m; hitDist = d; }
-    });
-    return hit;
-  }
-
-  canvas.addEventListener('click', function(ev){
-    var rect = canvas.getBoundingClientRect();
-    var px = ev.clientX - rect.left, py = ev.clientY - rect.top;
-    var t = (performance.now() - startTime)/1000;
-    var m = findNodeAt(px, py, t);
-    if (!m) { tooltip.classList.remove('show'); return; }
-    if (m.role === 'you') { goToView('perfil'); return; }
-    var p = toPx(m.id, t);
-    document.getElementById('tooltip-name').textContent = m.name;
-    document.getElementById('tooltip-meta').textContent = (m.niche||'') + ' · ' + (m.city||'');
-    var hint = '';
-    var you = YOU_ID !== null ? byId(YOU_ID) : null;
-    if (you && m.niche && m.niche === you.niche) hint = 'Mesma área que você.';
-    else if (you && m.city && m.city === you.city) hint = 'Mesma cidade que você.';
-    document.getElementById('tooltip-hint').textContent = hint;
-    document.getElementById('tooltip-hint').style.display = hint ? 'block' : 'none';
-    tooltip.style.left = p.x + 'px';
-    tooltip.style.top = p.y + 'px';
-    tooltip.classList.add('show');
-    ev.stopPropagation();
-  });
-  document.addEventListener('click', function(){ tooltip.classList.remove('show'); });
-
-  nicheSel.addEventListener('change', function(){ activeFilterNiche = this.value; });
-  citySel.addEventListener('change', function(){ activeFilterCity = this.value; });
-
+  nicheSel.addEventListener('change', function(){ activeFilterNiche = this.value; renderDirectory(); });
+  citySel.addEventListener('change', function(){ activeFilterCity = this.value; renderDirectory(); });
 
   /* ---------------- Ferramentas: tool rail ---------------- */
   document.querySelectorAll('.tool-item').forEach(function(item){
