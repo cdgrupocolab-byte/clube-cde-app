@@ -728,14 +728,29 @@
     * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
 
+  .nav-toggle { display: none; }
   @media (max-width: 720px) {
-    .topbar { gap: 10px; }
-    .tabs {
-      gap: 0; flex: 1 1 auto; min-width: 0; justify-content: flex-start;
-      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    .topbar { gap: 10px; position: relative; }
+    .nav-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; flex: none; order: -1;
+      background: none; border: 1px solid var(--hairline); border-radius: 8px;
+      color: var(--text); font-size: 1.15rem; cursor: pointer; padding: 0;
     }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab { padding: 10px 9px; font-size: 0.74rem; white-space: nowrap; flex: none; }
+    .nav-toggle:hover { border-color: var(--brass-dim); }
+    .tabs {
+      display: none; flex-direction: column; gap: 0;
+      position: absolute; top: calc(100% + 1px); left: 0; right: 0;
+      background: var(--ink-raised); border: 1px solid var(--hairline); border-top: none;
+      border-radius: 0 0 12px 12px; box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+      max-height: calc(100vh - 60px); overflow-y: auto; z-index: 60;
+    }
+    .tabs.open { display: flex; }
+    .tab {
+      width: 100%; text-align: left; padding: 15px 20px; font-size: 0.92rem;
+      white-space: normal; border-bottom: 1px solid var(--hairline);
+    }
+    .tab:last-child { border-bottom: none; }
     .brand { flex: none; }
     .member-chip { flex: none; }
     .member-chip span.txt { display: none; }
@@ -835,7 +850,8 @@
       <span class="brand-mark">CDE</span>
       <span class="brand-sub">Clube</span>
     </div>
-    <nav class="tabs" role="tablist" aria-label="Navegação principal">
+    <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
+    <nav class="tabs" role="tablist" aria-label="Navegação principal" id="tabs-nav">
       <button class="tab" role="tab" data-view="rede" aria-selected="true">Rede</button>
       <button class="tab" role="tab" data-view="networking" aria-selected="false">Networking</button>
       <button class="tab" role="tab" data-view="mural" aria-selected="false">Mural</button>
@@ -1887,10 +1903,28 @@
     });
     if (name === 'rede') { requestAnimationFrame(resizeCanvas); resumeCanvas(); }
   }
+  var tabsNav = document.getElementById('tabs-nav');
+  var navToggle = document.getElementById('nav-toggle');
+  function closeNavMenu(){
+    if (tabsNav) tabsNav.classList.remove('open');
+    if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+  }
   document.querySelectorAll('.tab').forEach(function(tab){
-    tab.addEventListener('click', function(){ setView(tab.getAttribute('data-view')); });
+    tab.addEventListener('click', function(){ setView(tab.getAttribute('data-view')); closeNavMenu(); });
   });
   function goToView(name){ setView(name); }
+  if (navToggle) {
+    navToggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var open = tabsNav.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function(ev){
+      if (tabsNav.classList.contains('open') && !tabsNav.contains(ev.target) && ev.target !== navToggle) {
+        closeNavMenu();
+      }
+    });
+  }
 
   /* ---------------- Mural render ---------------- */
   var muralList = document.getElementById('mural-list');
