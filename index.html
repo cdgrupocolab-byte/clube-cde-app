@@ -178,9 +178,10 @@
   }
   .paywall-cta:hover { background: var(--brass-soft); }
   .paywall-dismiss { background: none; border: none; color: var(--text-faint); font-size: 0.78rem; cursor: pointer; text-decoration: underline; }
-  .brand { display: flex; align-items: baseline; gap: 9px; }
+  .brand { display: flex; align-items: center; gap: 9px; }
   .brand-mark { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.5rem; letter-spacing: 0.01em; }
   .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); }
+  .brand-logo-img { height: 34px; width: auto; display: block; }
 
   .tabs { display: flex; gap: 4px; }
   .tab {
@@ -827,6 +828,7 @@
   .login-brand { display: flex; align-items: baseline; gap: 9px; justify-content: center; margin-bottom: 28px; }
   .login-brand .brand-mark { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.7rem; color: var(--paper); }
   .login-brand .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); }
+  .login-banner-img { display: block; width: 100%; max-width: 320px; margin: 0 auto 26px; height: auto; }
   .login-card h1 { font-size: 1.5rem; text-align: center; margin-bottom: 8px; }
   .login-sub { font-size: 0.84rem; color: var(--text-dim); text-align: center; line-height: 1.5; margin-bottom: 28px; }
   .login-field { margin-bottom: 16px; }
@@ -870,7 +872,7 @@
 
 <div class="login-gate hidden" id="login-gate">
   <div class="login-card">
-    <div class="login-brand"><span class="brand-mark">CDE</span><span class="brand-sub">Clube</span></div>
+    <img class="login-banner-img" src="data:image/jpeg;base64," alt="Club dos Empresários">
     <h1>Entrar no clube</h1>
     <div class="login-sub">Acesso restrito a membros com assinatura ativa.</div>
     <form id="login-form" novalidate>
@@ -897,7 +899,7 @@
 <div class="app hidden" data-mode="member">
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">CDE</span>
+      <img class="brand-logo-img" src="data:image/jpeg;base64," alt="CDE">
       <span class="brand-sub">Clube</span>
     </div>
     <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
