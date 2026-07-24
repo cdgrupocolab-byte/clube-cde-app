@@ -343,6 +343,13 @@ app.post('/admin/grant', requireAdmin, async (req, res) => {
   res.json({ ok: true, link: `${req.protocol}://${req.get('host')}/set-password/${result.token}` });
 });
 
+app.post('/admin/members/:email/delete', requireAdmin, async (req, res) => {
+  const email = String(req.params.email || '').trim().toLowerCase();
+  await pool.query('DELETE FROM mural_posts WHERE member_email = $1', [email]);
+  await pool.query('DELETE FROM members WHERE email = $1', [email]);
+  res.json({ ok: true });
+});
+
 /* ---------------- HTML helpers (self-contained, no external assets) ---------------- */
 function renderPage(title, bodyHtml) {
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
@@ -408,8 +415,9 @@ function renderAdminPage(rows, logRows) {
       linkCol = '<code style="font-size:11px;word-break:break-all;">/set-password/' + m.set_password_token + '</code>';
     }
     var lastLogin = m.last_login_at ? new Date(m.last_login_at).toLocaleString('pt-BR') : '—';
+    var delBtn = '<button type="button" class="del-btn" data-email="' + escapeHtml(m.email) + '" style="background:#3a2020;color:#e0785a;padding:5px 10px;font-size:11px;">Remover</button>';
     return '<tr><td>' + escapeHtml(m.email) + '</td><td>' + escapeHtml(m.name || '') + '</td><td>' + m.status +
-      '</td><td>' + m.source + '</td><td>' + new Date(m.created_at).toLocaleDateString('pt-BR') + '</td><td>' + lastLogin + '</td><td>' + linkCol + '</td></tr>';
+      '</td><td>' + m.source + '</td><td>' + new Date(m.created_at).toLocaleDateString('pt-BR') + '</td><td>' + lastLogin + '</td><td>' + linkCol + '</td><td>' + delBtn + '</td></tr>';
   }).join('');
   const logList = (logRows || []).map(function(l) {
     return '<tr><td>' + new Date(l.received_at).toLocaleString('pt-BR') + '</td><td>' + (l.token_valid ? 'sim' : 'NÃO') +
@@ -443,7 +451,7 @@ function renderAdminPage(rows, logRows) {
     <div id="result"></div>
   </div>
   <table>
-    <thead><tr><th>E-mail</th><th>Nome</th><th>Status</th><th>Origem</th><th>Desde</th><th>Último login</th><th>Link pendente</th></tr></thead>
+    <thead><tr><th>E-mail</th><th>Nome</th><th>Status</th><th>Origem</th><th>Desde</th><th>Último login</th><th>Link pendente</th><th></th></tr></thead>
     <tbody>${list}</tbody>
   </table>
   <h2 style="color:#C9A227;font-size:1rem;margin-top:32px;">Últimos webhooks recebidos (diagnóstico)</h2>
@@ -475,6 +483,21 @@ function renderAdminPage(rows, logRows) {
       } catch (e) {
         msg.textContent = e.message;
       }
+    });
+    document.querySelectorAll('.del-btn').forEach(function(btn){
+      btn.addEventListener('click', async function(){
+        var email = btn.getAttribute('data-email');
+        if (!confirm('Remover ' + email + ' definitivamente? Essa ação não pode ser desfeita.')) return;
+        btn.disabled = true; btn.textContent = 'Removendo...';
+        try {
+          var r = await fetch('/admin/members/' + encodeURIComponent(email) + '/delete', { method: 'POST' });
+          if (!r.ok) throw new Error('Erro ao remover.');
+          window.location.reload();
+        } catch (e) {
+          btn.disabled = false; btn.textContent = 'Remover';
+          alert(e.message);
+        }
+      });
     });
   </script>
   </body></html>`;
