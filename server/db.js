@@ -37,6 +37,8 @@ async function init() {
       raw JSONB
     );
   `);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
+  await pool.query(`ALTER TABLE members ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;`);
 }
 
 module.exports = { pool, init };

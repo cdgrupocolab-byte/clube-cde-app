@@ -375,6 +375,23 @@
     font-family: 'Fraunces', serif; font-size: 1.5rem; color: var(--brass);
   }
   .profile-name { font-size: 1.5rem; }
+  .profile-edit { margin-top: 16px; }
+  .profile-edit-btn {
+    background: none; border: 1px solid var(--hairline); color: var(--text-dim);
+    border-radius: 999px; padding: 6px 14px; font-size: 0.76rem; cursor: pointer;
+  }
+  .profile-edit-btn:hover { color: var(--text); border-color: var(--brass-dim); }
+  .profile-edit-form { display: none; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .profile-edit-form.show { display: flex; }
+  .profile-edit-form input {
+    background: var(--ink-sunken); border: 1px solid var(--hairline); color: var(--text);
+    border-radius: 8px; padding: 8px 11px; font-size: 0.82rem; min-width: 200px;
+  }
+  .profile-edit-form button {
+    background: var(--brass); color: var(--ink); border: none; border-radius: 8px;
+    padding: 8px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+  }
+  .profile-save-msg { font-size: 0.78rem; color: var(--pine-bright); }
   .profile-meta { color: var(--text-dim); font-size: 0.86rem; margin-top: 5px; }
   .profile-status { margin-top: 9px; display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--pine-bright); }
   .profile-status .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
@@ -825,8 +842,8 @@
       <button class="tab" role="tab" data-view="materiais" aria-selected="false">Materiais</button>
     </nav>
     <div class="member-chip" id="member-chip">
-      <span class="avatar-mini">RD</span>
-      <span class="txt">Rennan Diniz</span>
+      <span class="avatar-mini" id="chip-avatar-el">RD</span>
+      <span class="txt" id="chip-name-el">Rennan Diniz</span>
       <span class="dot" title="Mensalidade em dia"></span>
     </div>
     <button class="subscribe-cta" id="subscribe-cta">Assinar o CDE</button>
@@ -912,11 +929,20 @@
     <section id="view-perfil" class="view">
       <div class="profile-card">
         <div class="profile-top">
-          <div class="profile-avatar">RD</div>
+          <div class="profile-avatar" id="profile-avatar-el">RD</div>
           <div>
-            <h2 class="profile-name">Rennan Diniz</h2>
+            <h2 class="profile-name" id="profile-name-el">Rennan Diniz</h2>
             <div class="profile-meta">Consultoria Financeira · Curitiba, PR</div>
             <div class="profile-status"><span class="d"></span> Mensalidade em dia</div>
+          </div>
+        </div>
+        <div class="profile-edit">
+          <button type="button" id="profile-edit-toggle" class="profile-edit-btn">Editar nome e foto</button>
+          <div class="profile-edit-form" id="profile-edit-form">
+            <input type="text" id="profile-name-input" placeholder="Seu nome" maxlength="80">
+            <input type="url" id="profile-avatar-input" placeholder="Link de uma foto sua (https://...)">
+            <button type="button" id="profile-save-btn">Salvar</button>
+            <span class="profile-save-msg" id="profile-save-msg"></span>
           </div>
         </div>
         <div class="badge-row">
@@ -1607,6 +1633,85 @@
     setTimeout(function(){ loginToast.classList.remove('show'); }, 2600);
   }
 
+  /* ---------------- Perfil (nome / foto reais de quem está logado) ---------------- */
+  function getSession(){
+    try { return JSON.parse(localStorage.getItem(LOGIN_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function initialsOf(name){
+    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '??';
+    var first = parts[0][0] || '';
+    var last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+    return (first + last).toUpperCase();
+  }
+  function applyProfile(profile){
+    if (!profile) return;
+    var ini = initialsOf(profile.name);
+    document.querySelectorAll('#chip-avatar-el, #profile-avatar-el').forEach(function(el){
+      if (profile.avatarUrl) {
+        el.style.backgroundImage = 'url("' + profile.avatarUrl + '")';
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.textContent = '';
+      } else {
+        el.style.backgroundImage = '';
+        el.textContent = ini;
+      }
+    });
+    document.querySelectorAll('#chip-name-el, #profile-name-el').forEach(function(el){
+      el.textContent = profile.name || profile.email || '';
+    });
+    var nameInput = document.getElementById('profile-name-input');
+    var avatarInput = document.getElementById('profile-avatar-input');
+    if (nameInput) nameInput.value = profile.name || '';
+    if (avatarInput) avatarInput.value = profile.avatarUrl || '';
+  }
+  function loadProfile(){
+    var session = getSession();
+    if (!session || !session.token) return;
+    applyProfile(session);
+    fetch(API_BASE_URL + '/me', { headers: { 'Authorization': 'Bearer ' + session.token } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!data || !data.ok) return;
+        applyProfile(data);
+        session.name = data.name; session.avatarUrl = data.avatarUrl;
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(session));
+      }).catch(function(){});
+  }
+  var profileEditToggle = document.getElementById('profile-edit-toggle');
+  var profileEditForm = document.getElementById('profile-edit-form');
+  if (profileEditToggle) {
+    profileEditToggle.addEventListener('click', function(){
+      profileEditForm.classList.toggle('show');
+    });
+  }
+  var profileSaveBtn = document.getElementById('profile-save-btn');
+  if (profileSaveBtn) {
+    profileSaveBtn.addEventListener('click', function(){
+      var session = getSession();
+      if (!session || !session.token) return;
+      var msg = document.getElementById('profile-save-msg');
+      var name = document.getElementById('profile-name-input').value.trim();
+      var avatarUrl = document.getElementById('profile-avatar-input').value.trim();
+      profileSaveBtn.disabled = true;
+      msg.textContent = 'Salvando...';
+      fetch(API_BASE_URL + '/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+        body: JSON.stringify({ name: name, avatarUrl: avatarUrl })
+      }).then(function(r){ return r.json(); }).then(function(data){
+        profileSaveBtn.disabled = false;
+        if (!data.ok) { msg.textContent = 'Erro ao salvar.'; return; }
+        applyProfile(data);
+        session.name = data.name; session.avatarUrl = data.avatarUrl;
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(session));
+        msg.textContent = 'Salvo!';
+        setTimeout(function(){ msg.textContent = ''; }, 2000);
+      }).catch(function(){ profileSaveBtn.disabled = false; msg.textContent = 'Erro de conexão.'; });
+    });
+  }
+
   document.getElementById('login-form').addEventListener('submit', function(ev){
     ev.preventDefault();
     var email = document.getElementById('login-email').value.trim();
@@ -1634,7 +1739,8 @@
         errEl.classList.add('show');
         return;
       }
-      localStorage.setItem(LOGIN_KEY, JSON.stringify({ email: res.data.email, token: res.data.token, name: res.data.name }));
+      localStorage.setItem(LOGIN_KEY, JSON.stringify({ email: res.data.email, token: res.data.token, name: res.data.name, avatarUrl: res.data.avatarUrl }));
+      applyProfile(res.data);
       showApp();
       loginToastMsg('Sessão iniciada como ' + res.data.name);
     }).catch(function(){
@@ -2854,6 +2960,7 @@
   /* Checagem inicial de sessão — roda por último, depois do resto do app já estar montado */
   if (localStorage.getItem(LOGIN_KEY)) {
     showApp();
+    loadProfile();
   } else {
     showGate();
     document.getElementById('login-email').focus();

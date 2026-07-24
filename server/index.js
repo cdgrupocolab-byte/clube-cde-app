@@ -171,7 +171,36 @@ app.post('/login', async (req, res) => {
   }
   const match = await bcrypt.compare(String(password), member.password_hash);
   if (!match) return res.status(401).json({ ok: false, error: 'E-mail ou senha incorretos.' });
-  res.json({ ok: true, token: signSession(member.email), name: member.name || member.email, email: member.email });
+  await pool.query('UPDATE members SET last_login_at = now() WHERE email = $1', [member.email]);
+  res.json({ ok: true, token: signSession(member.email), name: member.name || member.email, email: member.email, avatarUrl: member.avatar_url });
+});
+
+/* ---------------- Perfil (nome / foto do próprio membro) ---------------- */
+function requireSession(req, res, next) {
+  const auth = req.get('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  const email = verifySession(token);
+  if (!email) return res.status(401).json({ ok: false, error: 'Sessão inválida. Entre novamente.' });
+  req.memberEmail = email;
+  next();
+}
+
+app.get('/me', requireSession, async (req, res) => {
+  const { rows } = await pool.query('SELECT email, name, avatar_url FROM members WHERE email = $1', [req.memberEmail]);
+  if (!rows.length) return res.status(404).json({ ok: false });
+  res.json({ ok: true, email: rows[0].email, name: rows[0].name, avatarUrl: rows[0].avatar_url });
+});
+
+app.post('/me', requireSession, async (req, res) => {
+  const { name, avatarUrl } = req.body || {};
+  const cleanName = name ? String(name).trim().slice(0, 80) : null;
+  const cleanAvatar = avatarUrl ? String(avatarUrl).trim().slice(0, 500) : null;
+  await pool.query(
+    'UPDATE members SET name = COALESCE($2, name), avatar_url = $3 WHERE email = $1',
+    [req.memberEmail, cleanName, cleanAvatar]
+  );
+  const { rows } = await pool.query('SELECT email, name, avatar_url FROM members WHERE email = $1', [req.memberEmail]);
+  res.json({ ok: true, email: rows[0].email, name: rows[0].name, avatarUrl: rows[0].avatar_url });
 });
 
 /* ---------------- Admin ---------------- */
@@ -270,8 +299,9 @@ function renderAdminPage(rows, logRows) {
     if (m.status === 'pending' && m.set_password_token) {
       linkCol = '<code style="font-size:11px;word-break:break-all;">/set-password/' + m.set_password_token + '</code>';
     }
+    var lastLogin = m.last_login_at ? new Date(m.last_login_at).toLocaleString('pt-BR') : '—';
     return '<tr><td>' + escapeHtml(m.email) + '</td><td>' + escapeHtml(m.name || '') + '</td><td>' + m.status +
-      '</td><td>' + m.source + '</td><td>' + new Date(m.created_at).toLocaleDateString('pt-BR') + '</td><td>' + linkCol + '</td></tr>';
+      '</td><td>' + m.source + '</td><td>' + new Date(m.created_at).toLocaleDateString('pt-BR') + '</td><td>' + lastLogin + '</td><td>' + linkCol + '</td></tr>';
   }).join('');
   const logList = (logRows || []).map(function(l) {
     return '<tr><td>' + new Date(l.received_at).toLocaleString('pt-BR') + '</td><td>' + (l.token_valid ? 'sim' : 'NÃO') +
@@ -305,7 +335,7 @@ function renderAdminPage(rows, logRows) {
     <div id="result"></div>
   </div>
   <table>
-    <thead><tr><th>E-mail</th><th>Nome</th><th>Status</th><th>Origem</th><th>Desde</th><th>Link pendente</th></tr></thead>
+    <thead><tr><th>E-mail</th><th>Nome</th><th>Status</th><th>Origem</th><th>Desde</th><th>Último login</th><th>Link pendente</th></tr></thead>
     <tbody>${list}</tbody>
   </table>
   <h2 style="color:#C9A227;font-size:1rem;margin-top:32px;">Últimos webhooks recebidos (diagnóstico)</h2>
