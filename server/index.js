@@ -252,6 +252,19 @@ app.post('/me', requireSession, async (req, res) => {
   res.json({ ok: true, ...memberToProfile(rows[0]) });
 });
 
+app.get('/members/public', requireSession, async (req, res) => {
+  const { rows } = await pool.query(
+    "SELECT id, email, name, niche, city, avatar_url FROM members WHERE status = 'active' ORDER BY created_at ASC LIMIT 500"
+  );
+  const members = rows.map(function(m) {
+    return {
+      id: m.id, name: m.name, niche: m.niche, city: m.city, avatarUrl: m.avatar_url,
+      role: m.email === req.memberEmail ? 'you' : 'member'
+    };
+  });
+  res.json({ ok: true, members: members });
+});
+
 /* ---------------- Admin ---------------- */
 function requireAdmin(req, res, next) {
   const auth = req.get('authorization') || '';

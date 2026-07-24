@@ -329,6 +329,7 @@
   .mural-search:focus { border-color: var(--brass-dim); }
 
   .mural-list { display: flex; flex-direction: column; }
+  .mural-empty { padding: 40px 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; }
   .mural-item { padding: 20px 0; border-bottom: 1px solid var(--hairline); display: flex; gap: 16px; }
   .mural-item:first-child { padding-top: 0; }
   .mural-avatar {
@@ -864,8 +865,8 @@
       <button class="tab" role="tab" data-view="materiais" aria-selected="false">Materiais</button>
     </nav>
     <div class="member-chip" id="member-chip">
-      <span class="avatar-mini" id="chip-avatar-el">RD</span>
-      <span class="txt" id="chip-name-el">Rennan Diniz</span>
+      <span class="avatar-mini" id="chip-avatar-el">··</span>
+      <span class="txt" id="chip-name-el">—</span>
       <span class="dot" title="Mensalidade em dia"></span>
     </div>
     <button class="subscribe-cta" id="subscribe-cta">Assinar o CDE</button>
@@ -1641,6 +1642,7 @@
   function showApp(){
     loginGate.classList.add('hidden');
     appRoot.classList.remove('hidden');
+    if (typeof fetchNetworkMembers === 'function') fetchNetworkMembers();
     requestAnimationFrame(function(){
       if (typeof resizeCanvas === 'function') resizeCanvas();
       if (typeof resumeCanvas === 'function') resumeCanvas();
@@ -1838,56 +1840,15 @@
   });
 
   /* ---------------- Data ---------------- */
-  var YOU_ID = 2;
-  var MEMBERS = [
-    {id:0,  name:"Marcelo Andrade",     niche:"Fundador",                 city:"São Paulo",     role:"founder"},
-    {id:1,  name:"Júnior Almeida",      niche:"Fundador",                 city:"São Paulo",     role:"founder"},
-    {id:2,  name:"Rennan Diniz",        niche:"Consultoria Financeira",   city:"Curitiba",      role:"you"},
-    {id:3,  name:"Rafaela Nunes",       niche:"Estética Avançada",        city:"Belo Horizonte"},
-    {id:4,  name:"Diego Camargo",       niche:"Contabilidade PJ",         city:"Curitiba"},
-    {id:5,  name:"Juliana Prado",       niche:"Marketing Digital",        city:"São Paulo"},
-    {id:6,  name:"Fernando Salles",     niche:"Direito Empresarial",      city:"Porto Alegre"},
-    {id:7,  name:"Camila Torres",       niche:"Construção Civil",         city:"Goiânia"},
-    {id:8,  name:"Bruno Estevão",       niche:"Gastronomia (Delivery)",   city:"Recife"},
-    {id:9,  name:"Patrícia Lima",       niche:"Tecnologia / SaaS",        city:"Florianópolis"},
-    {id:10, name:"André Kobayashi",     niche:"Imobiliário",              city:"Campinas"},
-    {id:11, name:"Vanessa Ribeiro",     niche:"Odontologia",              city:"Fortaleza"},
-    {id:12, name:"Thiago Moraes",       niche:"Consultoria Financeira",   city:"São Paulo"},
-    {id:13, name:"Larissa Bittencourt", niche:"Moda / Confecção",         city:"Salvador"},
-    {id:14, name:"Rodrigo Feitosa",     niche:"Marketing Digital",        city:"Recife"},
-    {id:15, name:"Ana Beatriz Souza",   niche:"Estética Avançada",        city:"Curitiba"},
-    {id:16, name:"Caio Vasconcelos",    niche:"Contabilidade PJ",         city:"Belo Horizonte"},
-    {id:17, name:"Débora Aguiar",       niche:"Construção Civil",         city:"São Paulo"},
-    {id:18, name:"Eduardo Nogueira",    niche:"Direito Empresarial",      city:"Goiânia"},
-    {id:19, name:"Renata Cavalcanti",   niche:"Consultoria Financeira",   city:"Recife"}
-  ];
-
-  var EDGES = [
-    [0,3],[0,4],[0,5],[0,7],[0,9],[0,12],[0,17],[0,19],
-    [1,6],[1,8],[1,10],[1,11],[1,13],[1,16],[1,18],[1,2],
-    [2,4],[2,12],
-    [3,15,true],
-    [4,16],[4,17,true],
-    [5,14,true],
-    [6,18],
-    [7,17],
-    [9,10]
-  ];
-
-  var MURAL = [
-    {id:4,  tipo:"procuro",  text:"Procuro indicação de advogado trabalhista experiente com PJs de serviço — tenho um caso de reclamação urgente.", status:"aberto", time:"há 2 dias"},
-    {id:13, tipo:"ofereco",  text:"Ofereço 20% de desconto na primeira compra em atacado pra quem é do clube — moda praia e fitness.", status:"aberto", time:"há 3 dias"},
-    {id:14, tipo:"procuro",  text:"Procuro parceiro pra dividir estande na feira de franquias em setembro.", status:"respondido", time:"há 5 dias"},
-    {id:7,  tipo:"ofereco",  text:"Ofereço orçamento sem compromisso pra reforma comercial — atendo fora de Goiânia também.", status:"aberto", time:"há 6 dias"},
-    {id:11, tipo:"procuro",  text:"Procuro contador que já atenda outras clínicas odontológicas, pra comparar regime tributário.", status:"respondido", time:"há 1 semana"},
-    {id:10, tipo:"ofereco",  text:"Ofereço consultoria gratuita de 30 min pra quem tá pensando em comprar sala comercial.", status:"aberto", time:"há 1 semana"},
-    {id:6,  tipo:"ofereco",  text:"Ofereço revisão de contrato social sem custo pra quem entrou no clube este mês.", status:"respondido", time:"há 2 semanas"},
-    {id:8,  tipo:"procuro",  text:"Procuro fornecedor de embalagem sustentável pra delivery, com bom preço em volume.", status:"aberto", time:"há 2 semanas"}
-  ];
+  var YOU_ID = null;
+  var MEMBERS = [];
+  var EDGES = [];
+  var MURAL = [];
 
   function byId(id){ return MEMBERS.filter(function(m){ return m.id===id; })[0]; }
   function initials(name){
-    var parts = name.split(' ');
+    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '??';
     return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
   }
 
@@ -1928,50 +1889,64 @@
 
   /* ---------------- Mural render ---------------- */
   var muralList = document.getElementById('mural-list');
-  MURAL.forEach(function(post){
-    var m = byId(post.id);
-    var item = document.createElement('div');
-    item.className = 'mural-item';
-    item.innerHTML =
-      '<div class="mural-avatar">'+initials(m.name)+'</div>' +
-      '<div class="mural-body">' +
-        '<div class="mural-top">' +
-          '<span class="pill '+(post.tipo==='procuro'?'pill-procuro':'pill-ofereco')+'">'+(post.tipo==='procuro'?'Procuro':'Ofereço')+'</span>' +
-          '<span class="mural-name">'+m.name+'</span>' +
-          '<span class="mural-meta">'+m.niche+' · '+m.city+'</span>' +
+  function renderMural(){
+    muralList.innerHTML = '';
+    if (!MURAL.length) {
+      muralList.innerHTML = '<div class="mural-empty">Ainda não há posts no mural. Assim que os membros começarem a publicar "procuro" e "ofereço", aparece aqui.</div>';
+      return;
+    }
+    MURAL.forEach(function(post){
+      var m = byId(post.id);
+      if (!m) return;
+      var item = document.createElement('div');
+      item.className = 'mural-item';
+      item.innerHTML =
+        '<div class="mural-avatar">'+initials(m.name)+'</div>' +
+        '<div class="mural-body">' +
+          '<div class="mural-top">' +
+            '<span class="pill '+(post.tipo==='procuro'?'pill-procuro':'pill-ofereco')+'">'+(post.tipo==='procuro'?'Procuro':'Ofereço')+'</span>' +
+            '<span class="mural-name">'+m.name+'</span>' +
+            '<span class="mural-meta">'+(m.niche||'')+' · '+(m.city||'')+'</span>' +
+          '</div>' +
+          '<div class="mural-text">'+post.text+'</div>' +
         '</div>' +
-        '<div class="mural-text">'+post.text+'</div>' +
-      '</div>' +
-      '<div class="mural-status">' +
-        '<div class="status-tag '+post.status+'"><span class="d"></span>'+(post.status==='aberto'?'Aberto':'Respondido')+'</div>' +
-        '<div class="mural-time">'+post.time+'</div>' +
-      '</div>';
-    muralList.appendChild(item);
-  });
+        '<div class="mural-status">' +
+          '<div class="status-tag '+post.status+'"><span class="d"></span>'+(post.status==='aberto'?'Aberto':'Respondido')+'</div>' +
+          '<div class="mural-time">'+post.time+'</div>' +
+        '</div>';
+      muralList.appendChild(item);
+    });
+  }
 
   /* ---------------- Filters ---------------- */
   var nicheSel = document.getElementById('filter-nicho');
   var citySel = document.getElementById('filter-cidade');
-  var niches = [];
-  var cities = [];
-  MEMBERS.forEach(function(m){
-    if (m.role === 'founder') return;
-    if (niches.indexOf(m.niche) === -1) niches.push(m.niche);
-    if (cities.indexOf(m.city) === -1) cities.push(m.city);
-  });
-  niches.sort().forEach(function(n){
-    var o = document.createElement('option'); o.value = n; o.textContent = n; nicheSel.appendChild(o);
-  });
-  cities.sort().forEach(function(c){
-    var o = document.createElement('option'); o.value = c; o.textContent = c; citySel.appendChild(o);
-  });
+  function populateFilters(){
+    nicheSel.innerHTML = '<option value="">Todos os nichos</option>';
+    citySel.innerHTML = '<option value="">Todas as cidades</option>';
+    var niches = [];
+    var cities = [];
+    MEMBERS.forEach(function(m){
+      if (m.role === 'you') return;
+      if (m.niche && niches.indexOf(m.niche) === -1) niches.push(m.niche);
+      if (m.city && cities.indexOf(m.city) === -1) cities.push(m.city);
+    });
+    niches.sort().forEach(function(n){
+      var o = document.createElement('option'); o.value = n; o.textContent = n; nicheSel.appendChild(o);
+    });
+    cities.sort().forEach(function(c){
+      var o = document.createElement('option'); o.value = c; o.textContent = c; citySel.appendChild(o);
+    });
+  }
 
   /* ---------------- Stats ---------------- */
-  var dealCount = EDGES.filter(function(e){ return e[2]; }).length;
-  document.getElementById('rede-stats').innerHTML =
-    '<div class="stat-inline"><span class="n mono">'+MEMBERS.length+'</span><span class="l">Membros</span></div>' +
-    '<div class="stat-inline"><span class="n mono">'+EDGES.length+'</span><span class="l">Conexões</span></div>' +
-    '<div class="stat-inline"><span class="n mono">'+dealCount+'</span><span class="l">Negócios fechados</span></div>';
+  function renderStats(){
+    var dealCount = EDGES.filter(function(e){ return e[2]; }).length;
+    document.getElementById('rede-stats').innerHTML =
+      '<div class="stat-inline"><span class="n mono">'+MEMBERS.length+'</span><span class="l">Membros</span></div>' +
+      '<div class="stat-inline"><span class="n mono">'+EDGES.length+'</span><span class="l">Conexões</span></div>' +
+      '<div class="stat-inline"><span class="n mono">'+dealCount+'</span><span class="l">Negócios fechados</span></div>';
+  }
 
   /* ---------------- Network canvas ---------------- */
   var canvas = document.getElementById('network');
@@ -1986,32 +1961,60 @@
     return function(){ s = (s*1664525 + 1013904223) >>> 0; return s / 4294967296; };
   }
   var rand = seeded(20260714);
-
-  var uniqueNiches = [];
-  MEMBERS.forEach(function(m){ if (m.role !== 'founder' && m.role !== 'you' && uniqueNiches.indexOf(m.niche)===-1) uniqueNiches.push(m.niche); });
-
   var nodePos = {}; // id -> {ax, ay} normalized -1..1
-  var centerIds = [0,1,2];
-  centerIds.forEach(function(id, i){
-    var a = -Math.PI/2 + (i-1) * 0.85;
-    var r = 0.14;
-    nodePos[id] = { ax: Math.cos(a)*r, ay: Math.sin(a)*r };
-  });
-  uniqueNiches.forEach(function(niche, ni){
-    var members = MEMBERS.filter(function(m){ return m.niche === niche; });
-    var sectorStart = (ni / uniqueNiches.length) * Math.PI * 2;
-    var sectorWidth = (Math.PI * 2) / uniqueNiches.length;
-    members.forEach(function(m, i){
-      var a = sectorStart + ((i+0.5)/members.length) * sectorWidth * 0.86 + sectorWidth*0.07;
-      var r = 0.52 + rand()*0.4;
-      nodePos[m.id] = { ax: Math.cos(a)*r, ay: Math.sin(a)*r };
-    });
-  });
-
   var nodeMeta = {};
-  MEMBERS.forEach(function(m){
-    nodeMeta[m.id] = { phase: rand()*Math.PI*2, speed: 0.35 + rand()*0.25 };
-  });
+
+  function computeLayout(){
+    rand = seeded(20260714);
+    nodePos = {};
+    nodeMeta = {};
+    var you = YOU_ID !== null ? byId(YOU_ID) : null;
+    if (you) nodePos[YOU_ID] = { ax: 0, ay: 0 };
+    var uniqueNiches = [];
+    MEMBERS.forEach(function(m){
+      if (m.id === YOU_ID) return;
+      var n = m.niche || 'Área não informada';
+      if (uniqueNiches.indexOf(n) === -1) uniqueNiches.push(n);
+    });
+    uniqueNiches.forEach(function(niche, ni){
+      var members = MEMBERS.filter(function(m){ return m.id !== YOU_ID && (m.niche || 'Área não informada') === niche; });
+      var sectorStart = (ni / uniqueNiches.length) * Math.PI * 2;
+      var sectorWidth = (Math.PI * 2) / uniqueNiches.length;
+      members.forEach(function(m, i){
+        var a = sectorStart + ((i+0.5)/members.length) * sectorWidth * 0.86 + sectorWidth*0.07;
+        var r = 0.4 + rand()*0.5;
+        nodePos[m.id] = { ax: Math.cos(a)*r, ay: Math.sin(a)*r };
+      });
+    });
+    MEMBERS.forEach(function(m){
+      nodeMeta[m.id] = { phase: rand()*Math.PI*2, speed: 0.35 + rand()*0.25 };
+    });
+  }
+
+  function initRedeAndMural(){
+    renderMural();
+    populateFilters();
+    renderStats();
+    computeLayout();
+  }
+  initRedeAndMural();
+
+  function fetchNetworkMembers(){
+    var session = getSession();
+    if (!session || !session.token) return;
+    fetch(API_BASE_URL + '/members/public', { headers: { 'Authorization': 'Bearer ' + session.token } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!data || !data.ok) return;
+        MEMBERS = data.members;
+        var mine = MEMBERS.filter(function(m){ return m.role === 'you'; })[0];
+        YOU_ID = mine ? mine.id : null;
+        EDGES = [];
+        MURAL = [];
+        initRedeAndMural();
+      }).catch(function(){});
+  }
+  fetchNetworkMembers();
 
   function resizeCanvas(){
     var rect = wrap.getBoundingClientRect();
@@ -2166,12 +2169,11 @@
     if (m.role === 'you') { goToView('perfil'); return; }
     var p = toPx(m.id, t);
     document.getElementById('tooltip-name').textContent = m.name;
-    document.getElementById('tooltip-meta').textContent = m.niche + ' · ' + m.city;
+    document.getElementById('tooltip-meta').textContent = (m.niche||'') + ' · ' + (m.city||'');
     var hint = '';
-    var you = byId(YOU_ID);
-    if (m.niche === you.niche) hint = 'Mesmo nicho que você — sugestão do agente de conexão.';
-    else if (m.city === you.city) hint = 'Mesma cidade que você.';
-    else if (m.role === 'founder') hint = 'Fundador do clube.';
+    var you = YOU_ID !== null ? byId(YOU_ID) : null;
+    if (you && m.niche && m.niche === you.niche) hint = 'Mesma área que você.';
+    else if (you && m.city && m.city === you.city) hint = 'Mesma cidade que você.';
     document.getElementById('tooltip-hint').textContent = hint;
     document.getElementById('tooltip-hint').style.display = hint ? 'block' : 'none';
     tooltip.style.left = p.x + 'px';
@@ -2184,27 +2186,6 @@
   nicheSel.addEventListener('change', function(){ activeFilterNiche = this.value; });
   citySel.addEventListener('change', function(){ activeFilterCity = this.value; });
 
-  /* ---------------- Match toast (1 real event -> 1 message) ---------------- */
-  var toast = document.getElementById('toast');
-  var toastShown = false;
-  function showMatchToast(){
-    if (toastShown) return;
-    toastShown = true;
-    var renata = byId(19);
-    document.getElementById('toast-text').textContent =
-      'Renata Cavalcanti (Consultoria Financeira, Recife) é do seu nicho. Vocês foram conectados.';
-    toast.classList.add('show');
-    document.getElementById('toast-view').onclick = function(){
-      highlightNodeId = 19;
-      highlightUntil = performance.now() + 3500;
-      toast.classList.remove('show');
-    };
-    document.getElementById('toast-close').onclick = function(){
-      toast.classList.remove('show');
-    };
-    setTimeout(function(){ toast.classList.remove('show'); }, 9000);
-  }
-  setTimeout(showMatchToast, REDUCE_MOTION ? 400 : 3200);
 
   /* ---------------- Ferramentas: tool rail ---------------- */
   document.querySelectorAll('.tool-item').forEach(function(item){
