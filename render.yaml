@@ -41,3 +41,5 @@ services:
         sync: false
       - key: RESEND_API_KEY
         sync: false
+      - key: FROM_EMAIL
+        value: "Clube CDE <acesso@clubedosempresarios.net>"
